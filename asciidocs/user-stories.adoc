@@ -1,7 +1,9 @@
 = User-Stories LeoForms
-//
-//* As a student, I want to choose the subjects for the A-Levels in order to
-//take part at them
+
+== User
+=== U1: As a user, I want to have an optimized user interface and user experience to increase efficiency and enjoyment when using the application.
+==== Definition of Done:
+The user interface and user experience have been optimized, including improved aesthetics, usability enhancements, performance optimization and user feedback consideration to ensure increased efficiency and satisfaction for users.
 
 == Surveyor
 
@@ -29,6 +31,30 @@ While the survey is still going, I want to check who already answered the questi
 ==== Definition of Done:
 After the survey is finished, I want it to be archived so I can check the results anytime in the future.
 
+=== SU7: As a surveyor, I want to be able to create a course for templates in the frontend to efficiently handle recurring document courses.
+==== Definition of Done:
+When creating a template, I want to be able to define the course the survey takes through the specified Groups/Users.
+
+=== SU8: As a surveyor, I want to be able to view the the document course of the dispatched survey.
+==== Definition of Done:
+As a surveyor, I want to be able to view the the document course of the dispatched survey.
+The surveyor can access the document course of a survey and observe the changes regarding the status of their uploaded survey.
+
+=== SU9: As a surveyor, I want to upload surveys for following approval.
+==== Definition of Done:
+As a surveyor, I want to upload surveys for awaiting approval.
+When I'm done selecting a template, I want to upload the survey for following approval.
+
+=== SU10: As a surveyor, I want to export an editable PDF-File from an existing PDF-Form.
+==== Definition of Done:
+As a surveyor, I want to export an editable PDF-File from an existing PDF-Form.
+When choosing from different types of PDF-Forms, I can export them as an editable file, for me to fill out later on.
+
+=== SU11: As a surveyor, I would like to extract the data gathered from a completed survey.
+==== Definition of Done:
+As a surveyor, I would like to extract the data gathered from a completed survey.
+When a survey is finished, I want to get a downloadable summary of the filled out tasks with reference tot he completed survey
+
 == Student
 
 === ST1: As a student, I want to log into surveys easily in order to respond to surveys without wasting a lot of time
@@ -54,3 +80,7 @@ I want to be able to log back into the survey and change my answers before the s
 === ST6: As a student, I want to see the archive of my answers in order to have proof in case of a conflict
 ==== Definition of Done:
 I want to see all the survey I have taken part in. These can be filtered (e.g. done/open/..) and display the answers I gave.
+
+=== ST7: As a student, I want to be able to fill out PDF forms in the frontend to save time and ensure accuracy.
+==== Definition of Done:
+When taking a survey, I want to be able to fill out a PDF directly in the frontend.
