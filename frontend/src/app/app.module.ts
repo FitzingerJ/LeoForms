@@ -25,6 +25,8 @@ import { TemplateInventoryComponent } from './template-inventory/template-invent
 import { AuthModule, LogLevel } from 'angular-auth-oidc-client';
 import { MatMenuModule } from '@angular/material/menu';
 import { AnswersComponent } from './answers/answers.component';
+import { DocumentCourseComponent } from './document-course/document-course.component';
+import {MatStepperModule} from '@angular/material/stepper';
 
 @NgModule({
   declarations: [
@@ -34,7 +36,8 @@ import { AnswersComponent } from './answers/answers.component';
     CreateTemplateComponent,
     SurveyInventoryComponent,
     TemplateInventoryComponent,
-    AnswersComponent
+    AnswersComponent,
+    DocumentCourseComponent
   ],
   imports: [
     BrowserModule,
@@ -54,6 +57,7 @@ import { AnswersComponent } from './answers/answers.component';
     MatAutocompleteModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatStepperModule,
     MarkdownModule.forRoot({
       markedOptions: {
         provide: MarkedOptions,
@@ -69,10 +73,10 @@ import { AnswersComponent } from './answers/answers.component';
     }),
     AuthModule.forRoot({
       config: {
-        authority: 'https://auth.htl-leonding.ac.at/realms/htlleonding',
+        authority: '	https://auth.htl-leonding.ac.at/realms/diplomarbeit',
         redirectUrl: window.location.origin,
         postLogoutRedirectUri: window.location.origin,
-        clientId: 'htlleonding',
+        clientId: 'account',
         scope: 'openid profile email offline_access',
         responseType: 'code',
         silentRenew: true,

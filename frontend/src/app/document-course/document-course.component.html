@@ -1,0 +1,62 @@
+<h2>Dokumentenverlauf</h2>
+
+<h3 style="padding-left: 20px;">Dokument: {{documentName}}</h3>
+<mat-stepper [linear]="true" #stepper style="text-align: center;">
+    <mat-step [stepControl]="firstFormGroup" label="Group1">
+      <form [formGroup]="firstFormGroup">
+        <div style="padding-bottom: 15px;">
+          <button type="button" mat-raised-button (click)="fileInput1.click()" [disabled]="!canEditStep(0)">Choose File</button>
+          <input [hidden]="true" (change)="onFileSelected(fileInput1, firstFormGroup, 'fileUpload1')" #fileInput1 type="file" id="file" [disabled]="!canEditStep(0)">
+        </div>
+        <div>
+          <button mat-button matStepperNext [disabled]="!firstFormGroup.valid">Next</button>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step [stepControl]="secondFormGroup" label="Group2">
+      <form [formGroup]="secondFormGroup">
+        <div style="padding-bottom: 15px; padding-top: 15px;">
+          <button color="primary" mat-raised-button>Download {{documentName}}</button>
+        </div>
+        <div style="padding-bottom: 15px;">
+          <button type="button" mat-raised-button (click)="fileInput2.click()" [disabled]="!canEditStep(1)">Choose File</button>
+          <input [hidden]="true" (change)="onFileSelected(fileInput2, secondFormGroup, 'fileUpload2')" #fileInput2 type="file" id="file" [disabled]="!canEditStep(1)">
+        </div>
+        <div>
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-button matStepperNext [disabled]="!secondFormGroup.valid">Next</button>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step [stepControl]="thirdFormGroup" label="Group3">
+      <form [formGroup]="thirdFormGroup">
+        <div style="padding-bottom: 15px; padding-top: 15px;">
+          <button color="primary" mat-raised-button>Download {{documentName}}</button>
+        </div>
+        <div style="padding-bottom: 15px;">
+          <button type="button" mat-raised-button (click)="fileInput3.click()" [disabled]="!canEditStep(2)">Choose File</button>
+          <input [hidden]="true" (change)="onFileSelected(fileInput3, thirdFormGroup, 'fileUpload3')" #fileInput3 type="file" id="file" [disabled]="!canEditStep(2)">
+        </div>
+        <div>
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-button matStepperNext [disabled]="!thirdFormGroup.valid">Next</button>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step [stepControl]="fourthFormGroup" label="Group4">
+      <form [formGroup]="fourthFormGroup">
+        <div style="padding-bottom: 15px; padding-top: 15px;">
+          <button color="primary" mat-raised-button>Download {{documentName}}</button>
+        </div>
+        <div style="padding-bottom: 15px;">
+          <button type="button" mat-raised-button (click)="fileInput4.click()" [disabled]="!canEditStep(3)">Choose File</button>
+          <input [hidden]="true" (change)="onFileSelected(fileInput4, fourthFormGroup, 'fileUpload4')" #fileInput4 type="file" id="file" [disabled]="!canEditStep(3)">
+        </div>
+        <div>
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-button matStepperNext [disabled]="!fourthFormGroup.valid">Finish</button>
+        </div>
+      </form>
+    </mat-step>
+</mat-stepper>
+  

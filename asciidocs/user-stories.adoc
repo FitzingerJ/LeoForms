@@ -5,6 +5,12 @@
 ==== Definition of Done:
 The user interface and user experience have been optimized, including improved aesthetics, usability enhancements, performance optimization and user feedback consideration to ensure increased efficiency and satisfaction for users.
 
+
+=== U2: As a user, I want a secure and easy-to-use login process.
+==== Definition of Done:
+A User is able to safely login.
+
+
 == Surveyor
 
 === SU1: As a surveyor, I want to create a new survey with different types of questions in order to organise the school better
@@ -35,7 +41,7 @@ After the survey is finished, I want it to be archived so I can check the result
 ==== Definition of Done:
 When creating a template, I want to be able to define the course the survey takes through the specified Groups/Users.
 
-=== SU8: As a surveyor, I want to be able to view the the document course of the dispatched survey.
+=== SU8: As a surveyor, I want to be able to view the document course of the dispatched survey.
 ==== Definition of Done:
 As a surveyor, I want to be able to view the the document course of the dispatched survey.
 The surveyor can access the document course of a survey and observe the changes regarding the status of their uploaded survey.
