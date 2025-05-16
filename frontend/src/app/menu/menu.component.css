@@ -38,3 +38,9 @@ mat-toolbar div {
   align-items: center;
   flex-direction: column;
 }
+
+/* optional */
+:host ::ng-deep #diagram {
+  border: 1px solid #ccc;
+  background-color: #fff;
+}

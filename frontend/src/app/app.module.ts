@@ -27,6 +27,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { AnswersComponent } from './answers/answers.component';
 import { DocumentCourseComponent } from './document-course/document-course.component';
 import {MatStepperModule} from '@angular/material/stepper';
+import { DiagramModule, PrintAndExportService } from '@syncfusion/ej2-angular-diagrams';
+import { WorkflowEditorComponent } from './workflow-editor/workflow-editor.component';
 
 @NgModule({
   declarations: [
@@ -37,7 +39,8 @@ import {MatStepperModule} from '@angular/material/stepper';
     SurveyInventoryComponent,
     TemplateInventoryComponent,
     AnswersComponent,
-    DocumentCourseComponent
+    DocumentCourseComponent,
+    WorkflowEditorComponent
   ],
   imports: [
     BrowserModule,
@@ -58,6 +61,7 @@ import {MatStepperModule} from '@angular/material/stepper';
     MatDatepickerModule,
     MatNativeDateModule,
     MatStepperModule,
+    DiagramModule,
     MarkdownModule.forRoot({
       markedOptions: {
         provide: MarkedOptions,
@@ -71,6 +75,7 @@ import {MatStepperModule} from '@angular/material/stepper';
       },
       sanitize: SecurityContext.NONE // disable sanitization
     }),
+    
     AuthModule.forRoot({
       config: {
         authority: '	https://auth.htl-leonding.ac.at/realms/diplomarbeit',
@@ -84,10 +89,11 @@ import {MatStepperModule} from '@angular/material/stepper';
         logLevel: LogLevel.Debug
       }
     }),
+    
     MatMenuModule
   ],
-  providers: [],
-  bootstrap: [ AppComponent ]
+  providers: [PrintAndExportService],
+  bootstrap: [ AppComponent ] 
 })
 export class AppModule {
 }

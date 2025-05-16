@@ -7,6 +7,7 @@ import { CreateTemplateComponent } from './create-template/create-template.compo
 import { AuthGuard } from './auth.guard';
 import {AnswersComponent} from "./answers/answers.component";
 import { DocumentCourseComponent } from './document-course/document-course.component';
+import { WorkflowEditorComponent } from './workflow-editor/workflow-editor.component';
 
 const routes: Routes = [
   { path: '', component: CreateTemplateComponent },
@@ -14,7 +15,8 @@ const routes: Routes = [
   { path: 'survey_inv', component: SurveyInventoryComponent, canActivate: [ AuthGuard ] },
   { path: 'cs/:id', component: CreateSurveyComponent, canActivate: [ AuthGuard ] },
   { path: 'answers', component: AnswersComponent, canActivate: [ AuthGuard ] },
-  { path: 'document_course', component: DocumentCourseComponent}
+  { path: 'document_course', component: DocumentCourseComponent},
+  { path: 'workflow', component: WorkflowEditorComponent }
 ];
 
 @NgModule({
