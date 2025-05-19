@@ -29,6 +29,8 @@ import { DocumentCourseComponent } from './document-course/document-course.compo
 import {MatStepperModule} from '@angular/material/stepper';
 import { DiagramModule, PrintAndExportService } from '@syncfusion/ej2-angular-diagrams';
 import { WorkflowEditorComponent } from './workflow-editor/workflow-editor.component';
+import { SymbolPaletteModule } from '@syncfusion/ej2-angular-diagrams';
+
 
 @NgModule({
   declarations: [
@@ -62,6 +64,7 @@ import { WorkflowEditorComponent } from './workflow-editor/workflow-editor.compo
     MatNativeDateModule,
     MatStepperModule,
     DiagramModule,
+    SymbolPaletteModule,
     MarkdownModule.forRoot({
       markedOptions: {
         provide: MarkedOptions,

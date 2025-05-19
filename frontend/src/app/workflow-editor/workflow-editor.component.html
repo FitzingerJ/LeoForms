@@ -1,31 +1,29 @@
-<div style="display: flex; flex-direction: row; height: 100vh; width: 100%;">
-  <!-- Bausteinleiste -->
-  <div style="width: 200px; padding: 10px; background-color: #f0f0f0;">
-    <div
-      *ngFor="let type of blockTypes"
-      draggable="true"
-      (dragstart)="onDragStart($event, type)"
-      style="padding: 8px; background: #ccc; margin-bottom: 8px; cursor: grab;"
-    >
-      {{ type }}
-    </div>
+<div style="width: 100%; height: 100vh; display: flex;">
+  <!-- Symbol Palette -->
+  <div style="width: 250px; border-right: 1px solid #ccc;">
+    <ejs-symbolpalette
+      #symbolPalette
+      id="symbolpalette"
+      [palettes]="palettes"
+      [symbolHeight]="60"
+      [symbolWidth]="60"
+      [symbolMargin]="symbolMargin"
+      [getSymbolInfo]="getSymbolInfo"
+      [getNodeDefaults]="getSymbolDefaults"
+      width="100%"
+      height="100%">
+    </ejs-symbolpalette>
   </div>
 
-  <!-- Diagrammfeld -->
-  <div
-    style="flex: 1; height: 100%;"
-    (drop)="onDrop($event)"
-    (dragover)="onDragOver($event)"
-  >
-    <div style="width: 100%; height: 100%; display: flex; flex-direction: column;">
-      <ejs-diagram
-        #diagram
-        id="diagram"
-        width="100%"
-        height="600px"
-        [nodes]="nodes"
-        [connectors]="connectors"
-      ></ejs-diagram>
-    </div>
+  <!-- Diagram -->
+  <div style="flex: 1; display: flex; flex-direction: column;">
+    <ejs-diagram
+      #diagram
+      id="diagram"
+      width="100%"
+      height="100%"
+      [nodes]="nodes"
+      [connectors]="connectors">
+    </ejs-diagram>
   </div>
 </div>
