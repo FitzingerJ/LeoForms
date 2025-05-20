@@ -22,6 +22,10 @@ export class WorkflowEditorComponent implements OnInit {
   public connectors: ConnectorModel[] = [];
   public palettes: any[] = [];
   public symbolMargin = { left: 15, right: 15, top: 15, bottom: 15 };
+  public tool: DiagramTools = DiagramTools.Default;
+
+  private isConnectionMode = false;
+  private firstNodeId: string | null = null;
 
   ngOnInit(): void {
     this.palettes = [
@@ -88,5 +92,32 @@ export class WorkflowEditorComponent implements OnInit {
 
   public getSymbolDefaults(symbol: NodeModel): void {
     symbol.style = { strokeColor: '#757575' };
+  }
+
+  public activateConnectorClickMode(): void {
+    this.tool = DiagramTools.None;
+    this.firstNodeId = null;
+    this.isConnectionMode = true;
+  }
+
+  public onDiagramClick(args: any): void {
+    if (!this.isConnectionMode) return;
+
+    const element = args?.actualObject;
+    if (!element?.id || !(element as any).offsetX) return;
+
+    if (!this.firstNodeId) {
+      this.firstNodeId = element.id;
+    } else {
+      const newConnector: ConnectorModel = {
+        id: `connector_${this.firstNodeId}_${element.id}_${Date.now()}`,
+        sourceID: this.firstNodeId,
+        targetID: element.id,
+        type: 'Straight'
+      };
+      this.connectors = [...this.connectors, newConnector];
+      this.firstNodeId = null;
+      this.isConnectionMode = false;
+    }
   }
 }

@@ -15,15 +15,21 @@
     </ejs-symbolpalette>
   </div>
 
-  <!-- Diagram -->
+  <!-- Diagram Area -->
   <div style="flex: 1; display: flex; flex-direction: column;">
+    <button (click)="activateConnectorClickMode()" style="margin: 10px; align-self: flex-start;">
+      Verbindung erstellen
+    </button>
+
     <ejs-diagram
       #diagram
       id="diagram"
       width="100%"
       height="100%"
       [nodes]="nodes"
-      [connectors]="connectors">
+      [connectors]="connectors"
+      [tool]="tool"
+      (click)="onDiagramClick($event)">
     </ejs-diagram>
   </div>
 </div>
