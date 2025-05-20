@@ -123,7 +123,7 @@ export class WorkflowEditorComponent implements OnInit {
         targetID: element.id,
         type: 'Straight'
       };
-      this.connectors = [...this.connectors, newConnector];
+      this.diagramComponent.add(newConnector as ConnectorModel);
       this.firstNodeId = null;
       this.isConnectionMode = false;
     }
