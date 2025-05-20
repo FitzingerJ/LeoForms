@@ -23,8 +23,7 @@ export class WorkflowEditorComponent implements OnInit {
   public palettes: any[] = [];
   public symbolMargin = { left: 15, right: 15, top: 15, bottom: 15 };
   public tool: DiagramTools = DiagramTools.Default;
-
-  private isConnectionMode = false;
+  public isConnectionMode = false;
   private firstNodeId: string | null = null;
 
   ngOnInit(): void {
@@ -66,12 +65,21 @@ export class WorkflowEditorComponent implements OnInit {
         ports: commonPorts
       },
       {
-        id: 'Entscheidung',
+        id: 'Verzweigung',
         shape: { type: 'Flow', shape: 'Decision' },
         style: { fill: '#FFC107', strokeColor: 'white' },
-        annotations: [{ content: 'Entscheidung' }],
+        annotations: [{ content: 'Verzweigung' }],
         width: 80,
         height: 80,
+        ports: commonPorts
+      },
+      {
+        id: 'Rücksprung',
+        shape: { type: 'Flow', shape: 'Document' },
+        style: { fill: '#6F42C1', strokeColor: 'white' },
+        annotations: [{ content: 'Rücksprung' }],
+        width: 100,
+        height: 50,
         ports: commonPorts
       },
       {

@@ -17,8 +17,19 @@
 
   <!-- Diagram Area -->
   <div style="flex: 1; display: flex; flex-direction: column;">
-    <button (click)="activateConnectorClickMode()" style="margin: 10px; align-self: flex-start;">
-      Verbindung erstellen
+    <button
+      (click)="activateConnectorClickMode()"
+      [ngStyle]="{
+        backgroundColor: isConnectionMode ? '#28a745' : '#007bff',
+        color: 'white',
+        border: 'none',
+        padding: '10px 15px',
+        margin: '10px',
+        cursor: 'pointer',
+        alignSelf: 'flex-start'
+      }"
+    >
+      {{ isConnectionMode ? 'Verbindungsmodus aktiv – Klicken zum Verbinden' : 'Verbindung erstellen' }}
     </button>
 
     <ejs-diagram
