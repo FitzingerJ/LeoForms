@@ -24,7 +24,6 @@ export class WorkflowEditorComponent implements OnInit {
   public symbolMargin = { left: 15, right: 15, top: 15, bottom: 15 };
   public tool: DiagramTools = DiagramTools.Default;
   public isConnectionMode = false;
-
   private firstNodeId: string | null = null;
 
   ngOnInit(): void {
@@ -130,7 +129,6 @@ export class WorkflowEditorComponent implements OnInit {
     }
   }
 
-  // Speichern als JSON-Datei
   public saveDiagram(): void {
     const data = this.diagramComponent.saveDiagram();
     const blob = new Blob([data], { type: 'application/json' });
@@ -142,7 +140,6 @@ export class WorkflowEditorComponent implements OnInit {
     window.URL.revokeObjectURL(url);
   }
 
-  // Laden aus JSON-Datei
   public loadDiagram(): void {
     const input = document.createElement('input');
     input.type = 'file';
@@ -161,5 +158,56 @@ export class WorkflowEditorComponent implements OnInit {
     };
 
     input.click();
+  }
+
+  public validateDiagram(): void {
+    const nodes = this.diagramComponent.nodes as NodeModel[];
+    const connectors = this.diagramComponent.connectors as ConnectorModel[];
+
+    const incomingMap = new Map<string, number>();
+    const outgoingMap = new Map<string, number>();
+    let startCount = 0;
+    let endCount = 0;
+
+    for (const connector of connectors) {
+      if (connector.sourceID) {
+        outgoingMap.set(connector.sourceID, (outgoingMap.get(connector.sourceID) || 0) + 1);
+      }
+      if (connector.targetID) {
+        incomingMap.set(connector.targetID, (incomingMap.get(connector.targetID) || 0) + 1);
+      }
+    }
+
+    for (const node of nodes) {
+      const label = node.annotations?.[0]?.content || '';
+      const nodeId = node.id;
+
+      if (!nodeId) continue;
+
+      const inCount = incomingMap.get(nodeId) || 0;
+      const outCount = outgoingMap.get(nodeId) || 0;
+
+      if (label === 'Start') startCount++;
+      if (label === 'Ende') endCount++;
+
+      if (label === 'Verzweigung') {
+        if (outCount > 2) {
+          alert(`Fehler: Verzweigung "${label}" hat mehr als 2 ausgehende Verbindungen.`);
+          return;
+        }
+      } else {
+        if (inCount > 1 || outCount > 1) {
+          alert(`Fehler: Baustein "${label}" darf nur je eine Ein- und Ausgangsverbindung haben.`);
+          return;
+        }
+      }
+    }
+
+    if (startCount !== 1 || endCount !== 1) {
+      alert('Fehler: Es muss genau ein Start- und ein Ende-Baustein vorhanden sein.');
+      return;
+    }
+
+    alert('Validierung erfolgreich! 🎉');
   }
 }
