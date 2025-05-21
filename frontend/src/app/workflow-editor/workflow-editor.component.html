@@ -17,20 +17,24 @@
 
   <!-- Diagram Area -->
   <div style="flex: 1; display: flex; flex-direction: column;">
-    <button
-      (click)="activateConnectorClickMode()"
-      [ngStyle]="{
-        backgroundColor: isConnectionMode ? '#28a745' : '#007bff',
-        color: 'white',
-        border: 'none',
-        padding: '10px 15px',
-        margin: '10px',
-        cursor: 'pointer',
-        alignSelf: 'flex-start'
-      }"
-    >
-      {{ isConnectionMode ? 'Verbindungsmodus aktiv – Klicken zum Verbinden' : 'Verbindung erstellen' }}
-    </button>
+
+    <div style="display: flex; gap: 10px; padding: 10px;">
+      <button
+        (click)="activateConnectorClickMode()"
+        [ngStyle]="{
+          backgroundColor: isConnectionMode ? '#28a745' : '#007bff',
+          color: 'white',
+          border: 'none',
+          padding: '10px 15px',
+          cursor: 'pointer'
+        }"
+      >
+        {{ isConnectionMode ? 'Verbindungsmodus aktiv – Klicken zum Verbinden' : 'Verbindung erstellen' }}
+      </button>
+
+      <button (click)="saveDiagram()" style="padding: 10px;">Speichern</button>
+      <button (click)="loadDiagram()" style="padding: 10px;">Laden</button>
+    </div>
 
     <ejs-diagram
       #diagram

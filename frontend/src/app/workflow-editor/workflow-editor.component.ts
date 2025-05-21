@@ -24,6 +24,7 @@ export class WorkflowEditorComponent implements OnInit {
   public symbolMargin = { left: 15, right: 15, top: 15, bottom: 15 };
   public tool: DiagramTools = DiagramTools.Default;
   public isConnectionMode = false;
+
   private firstNodeId: string | null = null;
 
   ngOnInit(): void {
@@ -123,9 +124,42 @@ export class WorkflowEditorComponent implements OnInit {
         targetID: element.id,
         type: 'Straight'
       };
-      this.diagramComponent.add(newConnector as ConnectorModel);
+      this.diagramComponent.add(newConnector);
       this.firstNodeId = null;
       this.isConnectionMode = false;
     }
+  }
+
+  // Speichern als JSON-Datei
+  public saveDiagram(): void {
+    const data = this.diagramComponent.saveDiagram();
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'leoforms-workflow.json';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  // Laden aus JSON-Datei
+  public loadDiagram(): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+
+    input.onchange = (event: any) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const json = e.target?.result as string;
+        this.diagramComponent.loadDiagram(json);
+      };
+      reader.readAsText(file);
+    };
+
+    input.click();
   }
 }
