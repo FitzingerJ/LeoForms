@@ -16,7 +16,7 @@ const routes: Routes = [
   { path: 'cs/:id', component: CreateSurveyComponent, canActivate: [ AuthGuard ] },
   { path: 'answers', component: AnswersComponent, canActivate: [ AuthGuard ] },
   { path: 'document_course', component: DocumentCourseComponent},
-  { path: 'workflow', component: WorkflowEditorComponent }
+  { path: 'workflow', component: WorkflowEditorComponent}
 ];
 
 @NgModule({

@@ -1,5 +1,14 @@
 <h2>Template Erstellen</h2>
-
+<!-- Schnellvorlagen für Dokumentenverlauf -->
+<div style="margin-bottom: 20px;">
+  <h3>Dokumentenverlauf-Vorlagen</h3>
+  <mat-selection-list>
+    <mat-list-option *ngFor="let template of workflowTemplates" (click)="selectTemplate(template)">
+      {{ template.name }}
+    </mat-list-option>
+  </mat-selection-list>
+  <button mat-button color="accent" routerLink="/workflow">Eigenen Dokumentenverlauf erstellen</button>
+</div>
 <div class="grid-container">
   <div class="grid-child-purple">
     <textarea class="variable-textarea" [(ngModel)]="markdown"></textarea>

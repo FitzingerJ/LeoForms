@@ -108,6 +108,18 @@ export class CreateTemplateComponent implements OnInit {
 
   }
 
+  workflowTemplates = [
+    { name: 'Exkursionsantrag', markdown: '...' },
+    { name: 'Entschuldigungsliste', markdown: '...' },
+    { name: 'Förderkurs-Anmeldung', markdown: '...' },
+    { name: 'Schulbesuchsbestätigung', markdown: '...' },
+    { name: 'Stundentausch', markdown: '...' }
+  ];
+
+  selectTemplate(template: any) {
+    this.markdown = template.markdown;
+  }
+
 
 
 
