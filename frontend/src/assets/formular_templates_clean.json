@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Exkursionsantrag",
+    "markdown": "- Wandertag [x]\n- Exkursion [x]\n- Lehrausgang [x]\n\n- Schuljahr: [t:Schuljahr]\n- Klasse: [t:Klasse]\n- Leiter der Schulveranstaltung: [t:Leiter]\n- Begleitlehrer: [t:Begleitlehrer]\n- Datum: [t:Datum]\n- Anzahl teilnehmender Schüler: [t:Teilnehmerzahl]\n- Anzahl nicht teilnehmender Schüler: [t:NichtTeilnehmerzahl]\n- Namen der nicht teilnehmenden Schüler: [t:NichtTeilnehmerNamen]\n- Beginn: [t:Beginn]\n- Abfahrt von: [t:AbfahrtOrt]\n- Abfahrt um: [t:AbfahrtZeit]\n- Ende: [t:Ende]\n- Rückkehr wo: [t:RückkehrOrt]\n- Rückkehr um: [t:RückkehrZeit]\n- Ziel der Veranstaltung (Adresse, Telefon, Kontaktperson): [t:ZielKontakt]\n- Zweck – Prakt. Ergänzung zum Gegenstand: [t:Zweck]\n- Übernachtung: [t:Übernachtung]\n- Veranstaltungstage bisher inkl. diesem Antrag: [t:Veranstaltungstage]\n\n| Einheit 1 | Einheit 2 | Einheit 3 | Einheit 4 | Einheit 5 | Einheit 6 | Einheit 7 | Einheit 8 | Einheit 9 | Einheit 10 |\n|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------|\n| Gegenstand | Lehrer | | | | | | | | |\n\n- Stellungnahme AV/WL: [t:Stellungnahme]",
+    "workflow": ""
+  },
+  {
+    "name": "Entschuldigungsliste",
+    "markdown": "- Familienname: [t:Familienname]\n- Klasse: [t:Klasse]\n\n| Datum | Einheit | Grund des Fernbleibens |\n|--------|---------|------------------------|\n| | | |\n| | | |\n| | | |\n| | | |\n| | | |",
+    "workflow": ""
+  },
+  {
+    "name": "Förderkurs-Anmeldung",
+    "markdown": "- Datum: [t:Datum]\n\n**Meldung von Förderkursen**\n| Gegenstand | Jg./Kl./Sem. | Teilnehmeranzahl (m/w) | Lehrer/in | Anzahl Stunden |\n|------------|---------------|-------------------------|-----------|----------------|\n| | | | | |\n\n**Durchgeführte Einheiten**\n| Gegenstand | Klasse | UE | Gehalten am | WE | UNTIS |\n|------------|--------|----|-------------|----|--------|\n| | | | | | |\n| | | | | | |\n\n**Anwesenheit**\n| SchülerInnen | m/w | Datum 1 | Datum 2 | Datum 3 | Datum 4 | Datum 5 | Datum 6 | Datum 7 | Datum 8 |\n|--------------|-----|---------|---------|---------|---------|---------|---------|---------|---------|\n| | | | | | | | | | |",
+    "workflow": ""
+  },
+  {
+    "name": "Stundentausch",
+    "markdown": "**Stundentausch / Stundenverlegung**\n| Datum | UE | Klasse | Entfall. Gegenstand | Entfall. Lehrer | Dafür Gegenstand | Dafür Lehrer |\n|--------|----|--------|---------------------|------------------|------------------|---------------|\n| | | | | | | |\n| | | | | | | |\n| | | | | | | |\n\n**Rücktausch / Verlegung**\n| Datum | UE | Klasse | Entfall. Gegenstand | Entfall. Lehrer | Dafür Gegenstand | Dafür Lehrer |\n|--------|----|--------|---------------------|------------------|------------------|---------------|\n| | | | | | | |\n| | | | | | | |\n| | | | | | | |\n\n- Lehrperson: [t:LehrpersonTausch]\n- Grund für Antrag: [t:GrundTausch]\n- Weitere Lehrer (max. 3): [t:TauschPartner1] [t:TauschPartner2] [t:TauschPartner3]",
+    "workflow": ""
+  },
+  {
+    "name": "Schulbesuchsbestätigung",
+    "markdown": "- Vorlage bei: [t:ZielInstitution]\n- Schüler/in: [t:Name]\n- Geburtsdatum: [t:Geburtsdatum]\n- Schuljahr: [t:Schuljahr]\n- Klasse/Jahrgang: [t:Klasse]\n\n**Höhere Abteilung (5-jährig)**\n- [x] Informatik\n- [x] Medientechnik\n- [x] Elektronik\n- [x] Medizintechnik\n\n**Fachschule (4-jährig)**\n- [x] Elektronik/Techn. Informatik\n\n**Kolleg für Berufstätige**\n- [x] Informatik\n\n- Ausstellungsort & Datum: [t:OrtDatum]",
+    "workflow": ""
+  }
+]

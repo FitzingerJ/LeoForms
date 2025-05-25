@@ -7,6 +7,7 @@ import { FormControl } from '@angular/forms';
 import { Observable, startWith } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DataService, GroupInterface } from '../data.service';
+
 import { MarkdownService } from 'ngx-markdown';
 import { map } from 'rxjs/operators';
 
@@ -132,18 +133,19 @@ export class CreateSurveyComponent implements OnInit {
       }
     };
 
-    this.markdownService.renderer.table = function (header, body) {
-      let newBody = body.replace(/td/gi, 'option');
-      //console.log(header.substring(9, header.length - 12));
-      let fieldName = header.substring(9, header.length - 12);
-      console.log(fieldName);
-      //return '<select name="' + fieldName + '" id="' + fieldName + '" >\n'
-      return '<select name="' + fieldName + '" id="dropdown-menu" >\n'
-        + '<option disabled selected hidden>\n'
-        + header + 'wählen...'
-        + '</option>\n'
-        + newBody
-        + '</select>\n';
+    this.markdownService.renderer.table = function (header: string, body: string) {
+      // Spezialfall: Dropdown-Markierung vorhanden → Dropdown rendern
+      if (header.includes('[DROPDOWN]')) {
+        const cleanHeader = header.replace('[DROPDOWN]', '').trim();
+        const newBody = body.replace(/<td>/gi, '<option>').replace(/<\/td>/gi, '</option>');
+        return '<select name="' + cleanHeader + '" id="dropdown-menu">\n'
+          + '<option disabled selected hidden>' + cleanHeader + ' wählen...</option>\n'
+          + newBody
+          + '</select>\n';
+      }
+
+      // Normale Markdown-Tabelle mit Rahmen (via CSS-Klasse)
+      return '<table class="markdown-table"><thead>' + header + '</thead><tbody>' + body + '</tbody></table>';
     };
 
   }

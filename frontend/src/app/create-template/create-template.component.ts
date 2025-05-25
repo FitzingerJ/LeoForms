@@ -4,7 +4,7 @@ import { MarkdownService } from 'ngx-markdown';
 import { Title } from '@angular/platform-browser';
 import { DataService } from '../data.service';
 import { Router } from '@angular/router';
-
+import templateData from 'src/assets/formular_templates_corrected.json';
 
 @Component({
   selector: 'app-create-template',
@@ -32,6 +32,7 @@ export class CreateTemplateComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.workflowTemplates = templateData;
     let dropdownId = "";
     this.markdownService.renderer.listitem = function (text) {
       let fieldName;
@@ -93,28 +94,23 @@ export class CreateTemplateComponent implements OnInit {
     };
 
     this.markdownService.renderer.table = function (header, body) {
-      let newBody = body.replace(/td/gi, 'option');
-      //console.log(header.substring(9, header.length - 12));
-      let fieldName = header.substring(9, header.length - 12);
-      console.log(fieldName);
-      //return '<select name="' + fieldName + '" id="' + fieldName + '" >\n'
-      return '<select name="' + fieldName + '" id="dropdown-menu" >\n'
-        + '<option disabled selected hidden>\n'
-        + header + 'wählen...'
-        + '</option>\n'
-        + newBody
-        + '</select>\n';
+      // Spezialfall: Dropdown-Markierung vorhanden → Dropdown rendern
+      if (header.includes('[DROPDOWN]')) {
+        const cleanHeader = header.replace('[DROPDOWN]', '').trim();
+        const newBody = body.replace(/<td>/gi, '<option>').replace(/<\/td>/gi, '</option>');
+        return '<select name="' + cleanHeader + '" id="dropdown-menu">\n'
+          + '<option disabled selected hidden>' + cleanHeader + ' wählen...</option>\n'
+          + newBody
+          + '</select>\n';
+      }
+
+      // Normale Markdown-Tabelle → als HTML-Tabelle rendern
+      return '<table class="markdown-table"><thead>' + header + '</thead><tbody>' + body + '</tbody></table>';
     };
 
   }
 
-  workflowTemplates = [
-    { name: 'Exkursionsantrag', markdown: '...' },
-    { name: 'Entschuldigungsliste', markdown: '...' },
-    { name: 'Förderkurs-Anmeldung', markdown: '...' },
-    { name: 'Schulbesuchsbestätigung', markdown: '...' },
-    { name: 'Stundentausch', markdown: '...' }
-  ];
+  workflowTemplates: any[] = [];
 
   selectTemplate(template: any) {
     this.markdown = template.markdown;

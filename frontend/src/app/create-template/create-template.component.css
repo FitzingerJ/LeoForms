@@ -40,3 +40,28 @@ h3 {
 .grid-child-green {
   width: 50vw;
 }
+
+.markdown-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.markdown-table th,
+.markdown-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+
+::ng-deep .markdown-table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid #000;
+}
+
+::ng-deep .markdown-table th,
+::ng-deep .markdown-table td {
+  border: 1px solid #000;
+  padding: 8px;
+  text-align: left;
+}

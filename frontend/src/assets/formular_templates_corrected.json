@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Exkursionsantrag",
+    "markdown": "- [x]Wandertag\n- [x]Exkursion\n- [x]Lehrausgang\n\n- [t:Schuljahr]\n- [t:Klasse]\n- [t:Leiter der Schulveranstaltung]\n- [t:Begleitlehrer]\n- [t:Datum]\n- [t:Anzahl der teilnehmenden Schüler]\n- [t:Anzahl der nicht teilnehmenden Schüler]\n- [t:Namen der nicht teilnehmenden Schüler]\n- [t:Beginn]\n- [t:Abfahrt von]\n- [t:Abfahrt um]\n- [t:Ende]\n- [t:Rückkehr wo]\n- [t:Rückkehr um]\n- [t:Ziel der Veranstaltung (Adresse, Telefon, Kontaktperson)]\n- [t:Zweck – Prakt. Ergänzung zum Gegenstand]\n- [t:Übernachtung]\n- [t:Veranstaltungstage bisher (inkl. heute)]\n\n| Einheit 1 | Einheit 2 | Einheit 3 | Einheit 4 | Einheit 5 | Einheit 6 | Einheit 7 | Einheit 8 | Einheit 9 | Einheit 10 |\n|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------|\n| Gegenstand | Lehrer |  |  |  |  |  |  |  |  |\n|            |        |  |  |  |  |  |  |  |  |\n\n- [t:Stellungnahme AV/WL]",
+    "workflow": ""
+  },
+  {
+    "name": "Entschuldigungsliste",
+    "markdown": "- [t:Familienname]\n- [t:Klasse]\n\n| Datum | Einheit | Grund des Fernbleibens |\n|--------|---------|------------------------|\n|        |         |                        |\n|        |         |                        |\n|        |         |                        |\n|        |         |                        |\n|        |         |                        |",
+    "workflow": ""
+  },
+  {
+    "name": "Förderkurs-Anmeldung",
+    "markdown": "- [t:Datum]\n\n| Gegenstand | Jg./Kl./Sem. | Teilnehmeranzahl (m / w) | Lehrer/in | Anzahl der Stunden insgesamt |\n|------------|---------------|----------------------------|-----------|------------------------------|\n|            |               |                            |           |                              |\n\n| Gegenstand | Klasse | UE | Gehalten am | WE | UNTIS-Eingabe |\n|------------|--------|----|-------------|----|----------------|\n|            |        |    |             |    |                |\n|            |        |    |             |    |                |\n\n| SchülerInnen | m / w | Datum 1 | Datum 2 | Datum 3 | Datum 4 | Datum 5 | Datum 6 | Datum 7 | Datum 8 |\n|--------------|--------|---------|---------|---------|---------|---------|---------|---------|---------|\n|              |        |         |         |         |         |         |         |         |         |",
+    "workflow": ""
+  },
+  {
+    "name": "Stundentausch",
+    "markdown": "**Stundentausch / Stundenverlegung**\n\n| Datum | UE | Klasse | Entfallender Gegenstand | Entfallender Lehrer | Dafür Gegenstand | Dafür Lehrer |\n|--------|----|--------|--------------------------|----------------------|-------------------|---------------|\n|        |    |        |                          |                      |                   |               |\n|        |    |        |                          |                      |                   |               |\n|        |    |        |                          |                      |                   |               |\n\n**Rücktausch / Verlegung**\n\n| Datum | UE | Klasse | Entfallender Gegenstand | Entfallender Lehrer | Dafür Gegenstand | Dafür Lehrer |\n|--------|----|--------|--------------------------|----------------------|-------------------|---------------|\n|        |    |        |                          |                      |                   |               |\n|        |    |        |                          |                      |                   |               |\n|        |    |        |                          |                      |                   |               |\n\n- [t:Lehrperson Stundentausch]\n- [t:Grund für Tauschantrag]\n- [t:Tauschpartner 1]\n- [t:Tauschpartner 2]\n- [t:Tauschpartner 3]",
+    "workflow": ""
+  },
+  {
+    "name": "Schulbesuchsbestätigung",
+    "markdown": "- [t:zu Vorlage bei(m)]\n- [t:Schüler/in]\n- [t:Geburtsdatum]\n- [t:Schuljahr]\n- [t:Klasse/Jahrgang]\n\n**Höhere Abteilung (5-jährig)**\n- [x]Informatik\n- [x]Informationstechnologie mit Ausbildungsschwerpunkt Medientechnik\n- [x]Elektronik und Technische Informatik\n- [x]Biomedizin und Gesundheitstechnik – Medizintechnik\n\n**Fachschule (4-jährig)**\n- [x]Elektronik und Technische Informatik\n\n**Kolleg/Aufbaulehrgang für Berufstätige**\n- [x]Informatik\n\n- [t:Leonding, Datum]",
+    "workflow": ""
+  }
+]

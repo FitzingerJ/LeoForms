@@ -11,10 +11,10 @@ import { WorkflowEditorComponent } from './workflow-editor/workflow-editor.compo
 
 const routes: Routes = [
   { path: '', component: CreateTemplateComponent },
-  { path: 'template_inv', component: TemplateInventoryComponent, canActivate: [ AuthGuard ] },
-  { path: 'survey_inv', component: SurveyInventoryComponent, canActivate: [ AuthGuard ] },
-  { path: 'cs/:id', component: CreateSurveyComponent, canActivate: [ AuthGuard ] },
-  { path: 'answers', component: AnswersComponent, canActivate: [ AuthGuard ] },
+  { path: 'template_inv', component: TemplateInventoryComponent/*, canActivate: [ AuthGuard ] */},
+  { path: 'survey_inv', component: SurveyInventoryComponent/*, canActivate: [ AuthGuard ] */},
+  { path: 'cs/:id', component: CreateSurveyComponent/*, canActivate: [ AuthGuard ] */},
+  { path: 'answers', component: AnswersComponent/*, canActivate: [ AuthGuard ] */},
   { path: 'document_course', component: DocumentCourseComponent},
   { path: 'workflow', component: WorkflowEditorComponent}
 ];
