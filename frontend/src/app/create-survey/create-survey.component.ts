@@ -134,18 +134,26 @@ export class CreateSurveyComponent implements OnInit {
     };
 
     this.markdownService.renderer.table = function (header: string, body: string) {
-      // Spezialfall: Dropdown-Markierung vorhanden → Dropdown rendern
+      // Spezialfall Dropdown
       if (header.includes('[DROPDOWN]')) {
         const cleanHeader = header.replace('[DROPDOWN]', '').trim();
         const newBody = body.replace(/<td>/gi, '<option>').replace(/<\/td>/gi, '</option>');
-        return '<select name="' + cleanHeader + '" id="dropdown-menu">\n'
-          + '<option disabled selected hidden>' + cleanHeader + ' wählen...</option>\n'
-          + newBody
-          + '</select>\n';
+        return `
+          <select name="${cleanHeader}" id="dropdown-menu">
+            <option disabled selected hidden>${cleanHeader} wählen...</option>
+            ${newBody}
+          </select>`;
       }
 
-      // Normale Markdown-Tabelle mit Rahmen (via CSS-Klasse)
-      return '<table class="markdown-table"><thead>' + header + '</thead><tbody>' + body + '</tbody></table>';
+      // Editierbare Tabelle: alle <td> → input-Feld
+      const editableBody = body.replace(/<td>(.*?)<\/td>/gi, `<td><input type="text" value="$1" style="width: 100%; border: none; outline: none; background: transparent;" /></td>`);
+
+      return `
+        <table class="markdown-table">
+          ${header}
+          ${editableBody}
+        </table>
+      `;
     };
 
   }

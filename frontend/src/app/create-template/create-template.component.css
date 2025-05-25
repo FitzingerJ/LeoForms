@@ -62,6 +62,15 @@ h3 {
 ::ng-deep .markdown-table th,
 ::ng-deep .markdown-table td {
   border: 1px solid #000;
-  padding: 8px;
+  padding: 4px;
   text-align: left;
+}
+
+::ng-deep .markdown-table input[type="text"] {
+  width: 100%;
+  border: none;
+  padding: 4px;
+  box-sizing: border-box;
+  background: transparent;
+  font-family: inherit;
 }
