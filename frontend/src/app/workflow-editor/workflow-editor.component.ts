@@ -8,6 +8,9 @@ import {
   PointPortModel,
   SymbolInfo
 } from '@syncfusion/ej2-angular-diagrams';
+import { FormControl } from '@angular/forms';
+import { Observable, startWith, map } from 'rxjs';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 
 @Component({
   selector: 'app-workflow-editor',
@@ -26,6 +29,11 @@ export class WorkflowEditorComponent implements OnInit {
   public isConnectionMode = false;
   private firstNodeId: string | null = null;
 
+  assignmentControl = new FormControl();
+  filteredAssignments: Observable<string[]> = new Observable();
+  availableAssignments: string[] = ['Direktor', 'Klassenvorstand', 'Eltern', 'Schüler:innen', 'Sekretariat', 'Schulwart', 'Schulärztin'];
+  selectedNodeForAssignment: NodeModel | null = null;
+
   ngOnInit(): void {
     this.palettes = [
       {
@@ -35,6 +43,10 @@ export class WorkflowEditorComponent implements OnInit {
         title: 'Bausteine'
       }
     ];
+    this.filteredAssignments = this.assignmentControl.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filterAssignments(value || ''))
+    );
   }
 
   public getSymbols(): NodeModel[] {
@@ -109,23 +121,43 @@ export class WorkflowEditorComponent implements OnInit {
   }
 
   public onDiagramClick(args: any): void {
-    if (!this.isConnectionMode) return;
-
     const element = args?.actualObject;
+
     if (!element?.id || !(element as any).offsetX) return;
 
-    if (!this.firstNodeId) {
-      this.firstNodeId = element.id;
-    } else {
-      const newConnector: ConnectorModel = {
-        id: `connector_${this.firstNodeId}_${element.id}_${Date.now()}`,
-        sourceID: this.firstNodeId,
-        targetID: element.id,
-        type: 'Straight'
-      };
-      this.diagramComponent.add(newConnector);
-      this.firstNodeId = null;
-      this.isConnectionMode = false;
+    // 1. Verbindung erzeugen, wenn Verbindungsmodus aktiv
+    if (this.isConnectionMode) {
+      if (!this.firstNodeId) {
+        this.firstNodeId = element.id;
+      } else {
+        const newConnector: ConnectorModel = {
+          id: `connector_${this.firstNodeId}_${element.id}_${Date.now()}`,
+          sourceID: this.firstNodeId,
+          targetID: element.id,
+          type: 'Straight'
+        };
+        this.diagramComponent.add(newConnector);
+        this.firstNodeId = null;
+        this.isConnectionMode = false;
+      }
+    }
+
+    // 2. Immer: Node zur Zuweisung anzeigen
+    if (element?.annotations?.length > 0) {
+      this.selectedNodeForAssignment = element;
+      const assigned = (element as any).assignedTo;
+      this.assignmentControl.setValue(assigned ?? '');
+    }
+  }
+
+  private _filterAssignments(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    return this.availableAssignments.filter(option => option.toLowerCase().includes(filterValue));
+  }
+
+  onAssignmentSelected(event: MatAutocompleteSelectedEvent) {
+    if (this.selectedNodeForAssignment) {
+      (this.selectedNodeForAssignment as any).assignedTo = event.option.value;
     }
   }
 

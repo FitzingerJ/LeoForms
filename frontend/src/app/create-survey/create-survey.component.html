@@ -29,32 +29,49 @@
 
 
 
-  <mat-form-field class="example-chip-list" appearance="fill">
-    <mat-label>Zielgruppen wählen</mat-label>
-    <mat-chip-grid #chipList aria-label="Fruit selection">
-      <mat-chip
-        *ngFor="let fruit of groups"
-        (removed)="remove(fruit)">
-        {{fruit}}
-        <button matChipRemove>
-          <mat-icon>cancel</mat-icon>
-        </button>
-      </mat-chip>
-      <input
-        placeholder="Gruppe hinzufügen..."
-        #fruitInput
-        [formControl]="groupControl"
-        [matAutocomplete]="auto"
-        [matChipInputFor]="chipList"
-        [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-        (matChipInputTokenEnd)="add($event)">
-    </mat-chip-grid>
-    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)">
-      <mat-option *ngFor="let fruit of filteredGroups | async" [value]="fruit">
-        {{fruit}}
-      </mat-option>
-    </mat-autocomplete>
-  </mat-form-field>
+  <!-- Auswahl: Zielgruppe oder Dokumentenverlauf -->
+  <div style="margin-bottom: 20px;">
+    <mat-label>Verlaufstyp wählen:</mat-label><br><br>
+    <mat-radio-group [(ngModel)]="useWorkflow">
+      <mat-radio-button [value]="false">Einfache Zielgruppe</mat-radio-button>
+      <mat-radio-button [value]="true">Dokumentenverlauf definieren</mat-radio-button>
+    </mat-radio-group>
+  </div>
+
+  <!-- Wenn einfache Zielgruppe gewählt ist -->
+  <div *ngIf="!useWorkflow">
+    <mat-form-field class="example-chip-list" appearance="fill">
+      <mat-label>Zielgruppen wählen</mat-label>
+      <mat-chip-grid #chipList aria-label="Fruit selection">
+        <mat-chip
+          *ngFor="let fruit of groups"
+          (removed)="remove(fruit)">
+          {{fruit}}
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip>
+        <input
+          placeholder="Gruppe hinzufügen..."
+          #fruitInput
+          [formControl]="groupControl"
+          [matAutocomplete]="auto"
+          [matChipInputFor]="chipList"
+          [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+          (matChipInputTokenEnd)="add($event)">
+      </mat-chip-grid>
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)">
+        <mat-option *ngFor="let fruit of filteredGroups | async" [value]="fruit">
+          {{fruit}}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+
+  <!-- Wenn Dokumentenverlauf gewählt ist -->
+  <div *ngIf="useWorkflow" style="margin-bottom: 15px;">
+    <button mat-raised-button color="accent" (click)="openWorkflow()">Dokumentenverlauf definieren</button>
+  </div>
 
   <mat-form-field appearance="fill">
     <mat-label>Deadline wählen</mat-label>

@@ -7,6 +7,7 @@ import { FormControl } from '@angular/forms';
 import { Observable, startWith } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DataService, GroupInterface } from '../data.service';
+import { MatRadioModule } from '@angular/material/radio';
 
 import { MarkdownService } from 'ngx-markdown';
 import { map } from 'rxjs/operators';
@@ -275,4 +276,15 @@ export class CreateSurveyComponent implements OnInit {
 
     return this.allGroups.filter(fruit => fruit.toLowerCase().includes(filterValue));
   }
+
+  useWorkflow: boolean = false;
+
+  openWorkflow() {
+    this.route.navigate(['/workflow'], {
+      queryParams: {
+        fromSurvey: true,
+        templateId: this.templateId
+      }
+    });
+}
 }

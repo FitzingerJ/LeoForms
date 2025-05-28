@@ -30,6 +30,7 @@ import {MatStepperModule} from '@angular/material/stepper';
 import { DiagramModule, PrintAndExportService } from '@syncfusion/ej2-angular-diagrams';
 import { WorkflowEditorComponent } from './workflow-editor/workflow-editor.component';
 import { SymbolPaletteModule } from '@syncfusion/ej2-angular-diagrams';
+import { MatRadioModule } from '@angular/material/radio';
 
 
 @NgModule({
@@ -65,6 +66,7 @@ import { SymbolPaletteModule } from '@syncfusion/ej2-angular-diagrams';
     MatStepperModule,
     DiagramModule,
     SymbolPaletteModule,
+    MatRadioModule,
     MarkdownModule.forRoot({
       markedOptions: {
         provide: MarkedOptions,

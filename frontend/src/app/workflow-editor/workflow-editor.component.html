@@ -47,5 +47,18 @@
       [tool]="tool"
       (click)="onDiagramClick($event)">
     </ejs-diagram>
+
+    <!-- Zuweisungseingabe bei Bausteinklick -->
+    <div *ngIf="selectedNodeForAssignment" style="margin: 10px;">
+      <mat-form-field appearance="fill" style="width: 300px;">
+        <mat-label>Person oder Gruppe für '{{ selectedNodeForAssignment?.annotations?.[0]?.content }}'</mat-label>
+        <input matInput [formControl]="assignmentControl" [matAutocomplete]="auto">
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onAssignmentSelected($event)">
+          <mat-option *ngFor="let option of filteredAssignments | async" [value]="option">
+            {{ option }}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
   </div>
 </div>
