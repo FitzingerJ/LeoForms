@@ -48,7 +48,7 @@
 
     <div *ngIf="selectedNodeForAssignment" class="assignment">
       <mat-form-field appearance="fill" style="width: 300px;">
-        <mat-label>Person oder Gruppe für '{{ selectedNodeForAssignment?.annotations?.[0]?.content }}'</mat-label>
+        <mat-label>Person für '{{ selectedNodeForAssignment?.annotations?.[0]?.content }}'</mat-label>
         <input matInput [formControl]="assignmentControl" [matAutocomplete]="auto">
         <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onAssignmentSelected($event)">
           <mat-option *ngFor="let option of filteredAssignments | async" [value]="option">
