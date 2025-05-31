@@ -1,0 +1,13 @@
+<h2>Formular: {{surveyName}}</h2>
+
+<!-- 🧩 Genau wie in create-survey.component.html -->
+<div #variableBinding class="variable-binding"></div>
+
+<div *ngIf="canEdit" class="actions">
+  <button mat-raised-button color="primary" (click)="confirm()">Bestätigen</button>
+  <button mat-raised-button color="warn" (click)="reject()">Ablehnen</button>
+</div>
+
+<div *ngIf="!canEdit" class="info">
+  <p>Du bist derzeit nicht an der Reihe.</p>
+</div>

@@ -1,0 +1,50 @@
+.readonly input,
+.readonly select,
+.readonly textarea {
+  pointer-events: none;
+  background: #eee;
+}
+.actions {
+  margin-top: 20px;
+}
+
+h2 {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-weight: bold;
+  font-size: 1.5em;
+  text-align: center;
+}
+
+h3 {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  text-align: center;
+}
+
+.variable-binding,
+.variable-textarea {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  padding: 8px;
+}
+
+/* Tabellenformatierung */
+::ng-deep .markdown-table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid #000;
+}
+
+::ng-deep .markdown-table th,
+::ng-deep .markdown-table td {
+  border: 1px solid #000;
+  padding: 4px;
+  text-align: left;
+}
+
+::ng-deep .markdown-table input[type="text"] {
+  width: 100%;
+  border: none;
+  padding: 4px;
+  box-sizing: border-box;
+  background: transparent;
+  font-family: inherit;
+}

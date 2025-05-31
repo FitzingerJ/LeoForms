@@ -10,6 +10,7 @@ import { DataService, GroupInterface, ReducedNode } from '../data.service';
 import { MatRadioModule } from '@angular/material/radio';
 import { marked } from 'marked';
 import { AfterViewInit } from '@angular/core';
+import { MockOidcSecurityService as OidcSecurityService } from '../auth/mock-oidc.service';
 
 import { MarkdownService } from 'ngx-markdown';
 import { map } from 'rxjs/operators';
@@ -46,7 +47,8 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
   constructor(public router: ActivatedRoute,
               public dataServ: DataService,
               private markdownService: MarkdownService,
-              private route: Router) {
+              private route: Router,
+              public oidcSecurityService: OidcSecurityService) {
 
     this.filteredGroups = this.groupControl.valueChanges.pipe(
       startWith(null),
@@ -346,6 +348,25 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
     this.dataServ.saveSurvey(date, this.formName, this.formDesc, finalForm, this.templateId, this.groups);
 
     console.log(finalForm);
+
+    if (this.formName) {
+      // 🧾 Speichere die aktuelle Version des ausgefüllten Formulars (inputElement mit HTML und Scripts)
+      localStorage.setItem('formHtml-' + this.formName, this.editedFormHtml);
+
+      localStorage.removeItem('markdown-' + this.formName);
+
+      // ✅ Workflow-Daten abspeichern
+      const workflow = this.dataServ.getWorkflow();
+      localStorage.setItem('workflow-' + this.formName, JSON.stringify(workflow));
+
+      // 👤 Creator (zur Anzeige, Navigation, etc.)
+      this.oidcSecurityService.checkAuth().subscribe(({ userData }) => {
+        localStorage.setItem('creator-' + this.formName, userData.email);
+      });
+
+      // 🔢 Initialer Step setzen
+      localStorage.setItem('step-' + this.formName, '0');
+    }
 
     this.markdown = '';
     this.formName = '';

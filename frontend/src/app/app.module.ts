@@ -31,6 +31,7 @@ import { DiagramModule, PrintAndExportService } from '@syncfusion/ej2-angular-di
 import { WorkflowEditorComponent } from './workflow-editor/workflow-editor.component';
 import { SymbolPaletteModule } from '@syncfusion/ej2-angular-diagrams';
 import { MatRadioModule } from '@angular/material/radio';
+import { SurveyViewerComponent } from './survey-viewer/survey-viewer.component';
 
 
 @NgModule({
@@ -43,7 +44,8 @@ import { MatRadioModule } from '@angular/material/radio';
     TemplateInventoryComponent,
     AnswersComponent,
     DocumentCourseComponent,
-    WorkflowEditorComponent
+    WorkflowEditorComponent,
+    SurveyViewerComponent
   ],
   imports: [
     BrowserModule,

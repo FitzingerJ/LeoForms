@@ -12,3 +12,12 @@ h2 {
   font-size: 1.5em;
   text-align: center;
 }
+
+tr.clickable {
+  cursor: pointer;
+  background-color: #f9f9f9;
+}
+
+tr.clickable:hover {
+  background-color: #e0e0e0;
+}
