@@ -33,6 +33,9 @@
       </button>
       <mat-menu #menu="matMenu">
         <button mat-menu-item (click)="logout()">Abmelden</button>
+        <button mat-button (click)="switchUser('Jakob')">Jakob</button>
+        <button mat-button (click)="switchUser('Direktor')">Direktor</button>
+        <button mat-button (click)="switchUser('Sekretariat')">Sekretariat</button>
       </mat-menu>
     </mat-toolbar>
     <router-outlet></router-outlet>

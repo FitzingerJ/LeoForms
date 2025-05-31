@@ -365,7 +365,7 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
       });
 
       // 🔢 Initialer Step setzen
-      localStorage.setItem('step-' + this.formName, '0');
+      localStorage.setItem('step-' + this.formName, '1');
     }
 
     this.markdown = '';

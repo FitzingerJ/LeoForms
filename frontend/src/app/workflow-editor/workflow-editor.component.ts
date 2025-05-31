@@ -11,7 +11,7 @@ import {
 import { FormControl } from '@angular/forms';
 import { Observable, startWith, map } from 'rxjs';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { DataService, GroupInterface } from '../data.service';
+import { DataService } from '../data.service';
 import { Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 
@@ -49,7 +49,6 @@ export class WorkflowEditorComponent implements OnInit {
   assignmentControl = new FormControl();
   filteredAssignments: Observable<string[]> = new Observable();
   availableAssignments: string[] = ['Direktor', 'Sekretariat'];
-  dataSource: GroupInterface[] = [];
   selectedNodeForAssignment: NodeModel | null = null;
 
   constructor(private dataServ: DataService, private router: Router, private route: ActivatedRoute) {}
@@ -64,15 +63,6 @@ export class WorkflowEditorComponent implements OnInit {
         title: 'Bausteine'
       }
     ];
-
-    this.dataServ.getGroups().subscribe((groups: GroupInterface[]) => {
-      this.dataSource = groups;
-      const groupNames = groups.map((group: GroupInterface) => group.name);
-      this.availableAssignments = [
-        ...this.availableAssignments,
-        ...groupNames.filter((name: string) => !this.availableAssignments.includes(name))
-      ];
-    });
 
     this.filteredAssignments = this.assignmentControl.valueChanges.pipe(
       startWith(''),

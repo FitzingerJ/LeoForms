@@ -10,11 +10,6 @@ h3 {
   text-align: center;
 }
 
-.variable-binding,
-.variable-textarea {
-
-}
-
 ::ng-deep .markdown-table {
   border-collapse: collapse;
   width: 100%;

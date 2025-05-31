@@ -1,5 +1,9 @@
 <h2>Formular: {{surveyName}}</h2>
 
+<p *ngIf="workflow.length > 0">
+  <strong>Fortschritt:</strong> Schritt {{ stepIndex + 1 }} von {{ totalSteps }} ({{ currentStepLabel }})
+</p>
+
 <!-- 🧩 Genau wie in create-survey.component.html -->
 <div #variableBinding class="variable-binding"></div>
 

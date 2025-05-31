@@ -55,4 +55,11 @@ export class MenuComponent implements OnInit {
       });
   }
 
+  public switchUser(userKey: 'Jakob' | 'Direktor' | 'Sekretariat'): void {
+    this.oidcSecurityService.switchUser(userKey);
+    this.oidcSecurityService.checkAuth().subscribe(({ userData }) => {
+      this.userData = userData;
+    });
+  }
+
 }

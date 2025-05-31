@@ -54,4 +54,17 @@ export class SurveyInventoryComponent implements OnInit {
     this.route.navigate(['/survey', survey.name]);
   }
 
+  getDisplayStatus(survey: SurveyModel): string {
+    const workflowJson = localStorage.getItem('workflow-' + survey.name);
+    if (!workflowJson) return survey.status || 'Offen';
+
+    const step = localStorage.getItem('step-' + survey.name);
+    if (step === 'done') return '✔️ Abgeschlossen';
+
+    const workflow = JSON.parse(workflowJson);
+    const index = Number(step || 0);
+    const label = workflow[index]?.label || '—';
+    return `🟡 Schritt ${index + 1} / ${workflow.length}: ${label}`;
+  }
+
 }

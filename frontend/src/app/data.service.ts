@@ -142,6 +142,14 @@ export class DataService {
     );
   }
 
+  private readonly roleEmailMap: { [role: string]: string } = {
+    'Direktor': 'direktor@htl-leonding.ac.at',
+    'Sekretariat': 'sekretariat@htl-leonding.ac.at'
+    // Weitere Rollen kannst du hier hinzufügen
+  };
 
+  getEmailForRole(roleName: string): string | undefined {
+    return this.roleEmailMap[roleName];
+  }
 
 }
