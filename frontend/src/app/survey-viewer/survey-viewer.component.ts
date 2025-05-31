@@ -91,8 +91,8 @@ export class SurveyViewerComponent implements OnInit, AfterViewInit {
     this.stepIndex = 0;
     localStorage.setItem('step-' + this.surveyName, '0');
 
-    // Optional: Du könntest hier auch ein Flag setzen
-    // localStorage.setItem('rejected-' + this.surveyName, 'true');
+    // 🟥 Markiere als abgelehnt
+    localStorage.setItem('rejected-' + this.surveyName, 'true');
 
     window.location.href = '/survey_inv';
   }

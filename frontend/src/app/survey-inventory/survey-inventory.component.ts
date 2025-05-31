@@ -58,6 +58,9 @@ export class SurveyInventoryComponent implements OnInit {
     const workflowJson = localStorage.getItem('workflow-' + survey.name);
     if (!workflowJson) return survey.status || 'Offen';
 
+    const rejected = localStorage.getItem('rejected-' + survey.name);
+    if (rejected === 'true') return '❌ Abgelehnt';
+
     const step = localStorage.getItem('step-' + survey.name);
     if (step === 'done') return '✔️ Abgeschlossen';
 
