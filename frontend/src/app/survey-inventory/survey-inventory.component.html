@@ -13,8 +13,8 @@
   </thead>
 
   <tr *ngFor="let survey of allSurveys"
-    [class.clickable]="survey.name && hasWorkflow(survey.name)"
-    (click)="survey.name && hasWorkflow(survey.name) && openSurvey(survey)">
+    [class.clickable]="hasWorkflow(survey.id)"
+    (click)="hasWorkflow(survey.id) && openSurvey(survey)">
     <td>{{survey.creationDate}}</td>
     <td>{{survey.name}}</td>
     <td>{{survey.endDate}}</td>

@@ -11,6 +11,8 @@ import { MatRadioModule } from '@angular/material/radio';
 import { marked } from 'marked';
 import { AfterViewInit } from '@angular/core';
 import { MockOidcSecurityService as OidcSecurityService } from '../auth/mock-oidc.service';
+import { HttpClient } from '@angular/common/http';
+import { SurveyDTO } from '../data.service';
 
 import { MarkdownService } from 'ngx-markdown';
 import { map } from 'rxjs/operators';
@@ -48,7 +50,8 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
               public dataServ: DataService,
               private markdownService: MarkdownService,
               private route: Router,
-              public oidcSecurityService: OidcSecurityService) {
+              public oidcSecurityService: OidcSecurityService,
+              private http: HttpClient) {
 
     this.filteredGroups = this.groupControl.valueChanges.pipe(
       startWith(null),
@@ -341,38 +344,39 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
       '<div id="formNameDiv"><h1 id="formName">' + this.formName + '</h1></div>' + inputElement;
     //console.log(finalForm);
 
-    // @ts-ignore
-    let date = this.endDate?.getFullYear() + '-' + (this.endDate?.getMonth().valueOf() + 1) + '-' + this.endDate?.getDate();
+    const finalHtml = this.editedFormHtml;
+    const workflowJson = JSON.stringify(this.workflow);
+    const step = '1';
 
     // @ts-ignore
-    this.dataServ.saveSurvey(date, this.formName, this.formDesc, finalForm, this.templateId, this.groups);
+    const endDateStr = this.endDate ? 
+      this.endDate.toISOString().split('T')[0] : '';
 
-    console.log(finalForm);
+    const surveyDto: SurveyDTO = {
+      creationDate: new Date().toISOString().substring(0, 10),
+      endDate: endDateStr,
+      templateId: this.templateId,
+      name: this.formName,
+      description: this.formDesc,
+      html: finalHtml,
+      groups: this.groups
+    };
 
-    if (this.formName) {
-      // 🧾 Speichere die aktuelle Version des ausgefüllten Formulars (inputElement mit HTML und Scripts)
-      localStorage.setItem('formHtml-' + this.formName, this.editedFormHtml);
+    this.dataServ.saveSurvey(surveyDto).subscribe(surveyId => {
+      localStorage.setItem('formHtml-' + surveyId, finalHtml);
+      localStorage.setItem('workflow-' + surveyId, workflowJson);
+      localStorage.setItem('step-' + surveyId, '1');
 
-      localStorage.removeItem('markdown-' + this.formName);
-
-      // ✅ Workflow-Daten abspeichern
-      const workflow = this.dataServ.getWorkflow();
-      localStorage.setItem('workflow-' + this.formName, JSON.stringify(workflow));
-
-      // 👤 Creator (zur Anzeige, Navigation, etc.)
       this.oidcSecurityService.checkAuth().subscribe(({ userData }) => {
-        localStorage.setItem('creator-' + this.formName, userData.email);
+        localStorage.setItem('creator-' + surveyId, userData.email);
       });
 
-      // 🔢 Initialer Step setzen
-      localStorage.setItem('step-' + this.formName, '1');
-    }
+      this.markdown = '';
+      this.formName = '';
+      this.formDesc = '';
 
-    this.markdown = '';
-    this.formName = '';
-    this.formDesc = '';
-    //this.route.navigate(["/survey_inv"]);
-
+      this.route.navigate(["/survey_inv"]);
+    });
   }
 
   selected(event: MatAutocompleteSelectedEvent): void {

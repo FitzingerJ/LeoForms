@@ -24,15 +24,15 @@ export class SurveyInventoryComponent implements OnInit {
 
       this.dataServ.getAllSurveys().subscribe(surveys => {
         this.allSurveys = surveys.filter(s => {
-          const workflowJson = localStorage.getItem('workflow-' + s.name);
-          const stepIndex = Number(localStorage.getItem('step-' + s.name) || '0');
+          const workflowJson = localStorage.getItem('workflow-' + s.id);
+          const stepIndex = Number(localStorage.getItem('step-' + s.id) || '0');
 
           // 🔓 Wenn kein Workflow definiert → immer anzeigen
           if (!workflowJson) return true;
 
           const workflow = JSON.parse(workflowJson);
           const assignedTo = workflow[stepIndex]?.assignedTo?.email;
-          const creator = localStorage.getItem('creator-' + s.name);
+          const creator = localStorage.getItem('creator-' + s.id);
 
           return creator === email || assignedTo === email;
         });
@@ -45,23 +45,23 @@ export class SurveyInventoryComponent implements OnInit {
     this.route.navigate(["/answers"]);
   }
 
-  hasWorkflow(surveyName: string | undefined): boolean {
-    if (!surveyName) return false;
-    return !!localStorage.getItem('workflow-' + surveyName);
+  hasWorkflow(surveyId: number | undefined): boolean {
+    if (surveyId == null) return false;
+    return !!localStorage.getItem('workflow-' + surveyId);
   }
 
   openSurvey(survey: SurveyModel): void {
-    this.route.navigate(['/survey', survey.name]);
+    this.route.navigate(['/survey', survey.id]);
   }
 
   getDisplayStatus(survey: SurveyModel): string {
-    const workflowJson = localStorage.getItem('workflow-' + survey.name);
+    const workflowJson = localStorage.getItem('workflow-' + survey.id);
     if (!workflowJson) return survey.status || 'Offen';
 
-    const rejected = localStorage.getItem('rejected-' + survey.name);
+    const rejected = localStorage.getItem('rejected-' + survey.id);
     if (rejected === 'true') return '❌ Abgelehnt';
 
-    const step = localStorage.getItem('step-' + survey.name);
+    const step = localStorage.getItem('step-' + survey.id);
     if (step === 'done') return '✔️ Abgeschlossen';
 
     const workflow = JSON.parse(workflowJson);

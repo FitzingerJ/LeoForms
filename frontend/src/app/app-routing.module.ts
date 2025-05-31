@@ -18,7 +18,7 @@ const routes: Routes = [
   { path: 'answers', component: AnswersComponent/*, canActivate: [ AuthGuard ] */},
   { path: 'document_course', component: DocumentCourseComponent},
   { path: 'workflow', component: WorkflowEditorComponent},
-  { path: 'survey/:name', component: SurveyViewerComponent },
+  { path: 'survey/:id', component: SurveyViewerComponent },
 ];
 
 @NgModule({

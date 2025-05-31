@@ -68,8 +68,7 @@ public class SurveyService {
                 new Group("7ACIF", "202223"),
                 new Group("7AKIF", "202223")
         ));
-
-        return Response.ok().build();
+        return Response.ok(s.getId()).build();
     }
 
     @GET

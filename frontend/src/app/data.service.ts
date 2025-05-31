@@ -5,6 +5,16 @@ import { TemplateModel } from './model/template.model';
 import { SurveyModel } from './model/survey.model';
 import {AnswerModel} from "./model/answer.model";
 
+export interface SurveyDTO {
+  creationDate: string;
+  endDate: string;
+  templateId: number;
+  name: string;
+  description: string;
+  html: string;
+  groups: string[];
+}
+
 export interface ReducedNode {
   id: string;
   label: string;
@@ -121,25 +131,8 @@ export class DataService {
     return this.http.get<GroupInterface[]>(`http://localhost:8080/groups`);
   }
 
-  saveSurvey(endDate: string, name: string, description: string, finalForm: string, templateId: number, groups: string[]) {
-
-
-
-    const survey = {
-      'creationDate': new Date().toISOString().substring(0, 10),
-      'endDate': new Date(endDate).toISOString().substring(0, 10),
-      'templateId': templateId,
-      'status': 'CREATED',
-      'name': name,
-      'description': description,
-      html: finalForm,
-      // groups: this.groups!.filter(g => groups.includes(g.name))
-    };
-
-    this.http.post('http://localhost:8080/survey', survey).subscribe(value => {
-        // console.log(value);
-      }
-    );
+  saveSurvey(dto: SurveyDTO): Observable<number> {
+    return this.http.post<number>('http://localhost:8080/survey', dto);
   }
 
   private readonly roleEmailMap: { [role: string]: string } = {
