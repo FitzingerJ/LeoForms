@@ -1,6 +1,5 @@
-<div style="width: 100%; height: 100vh; display: flex;">
-  <!-- Symbol Palette -->
-  <div style="width: 250px; border-right: 1px solid #ccc;">
+<div class="workflow-editor">
+  <div class="symbol-palette">
     <ejs-symbolpalette
       #symbolPalette
       id="symbolpalette"
@@ -15,10 +14,8 @@
     </ejs-symbolpalette>
   </div>
 
-  <!-- Diagram Area -->
-  <div style="flex: 1; display: flex; flex-direction: column;">
-
-    <div style="display: flex; gap: 10px; padding: 10px;">
+  <div class="editor-main">
+    <div class="toolbar">
       <button
         (click)="activateConnectorClickMode()"
         [ngStyle]="{
@@ -27,29 +24,29 @@
           border: 'none',
           padding: '10px 15px',
           cursor: 'pointer'
-        }"
-      >
+        }">
         {{ isConnectionMode ? 'Verbindungsmodus aktiv – Klicken zum Verbinden' : 'Verbindung erstellen' }}
       </button>
-
-      <button (click)="saveDiagram()" style="padding: 10px;">Speichern</button>
-      <button (click)="loadDiagram()" style="padding: 10px;">Laden</button>
-      <button (click)="validateDiagram()" style="padding: 10px;">Validieren</button>
+      <button (click)="saveDiagram()">Speichern</button>
+      <button (click)="loadDiagram()">Laden</button>
+      <button (click)="validateDiagram()">Validieren</button>
+      <button mat-raised-button color="primary" (click)="onSubmitWorkflow()">Workflow übernehmen</button>
     </div>
 
-    <ejs-diagram
-      #diagram
-      id="diagram"
-      width="100%"
-      height="100%"
-      [nodes]="nodes"
-      [connectors]="connectors"
-      [tool]="tool"
-      (click)="onDiagramClick($event)">
-    </ejs-diagram>
+    <div class="diagram-wrapper">
+      <ejs-diagram
+        #diagram
+        id="diagram"
+        width="100%"
+        height="100%"
+        [nodes]="nodes"
+        [connectors]="connectors"
+        [tool]="tool"
+        (click)="onDiagramClick($event)">
+      </ejs-diagram>
+    </div>
 
-    <!-- Zuweisungseingabe bei Bausteinklick -->
-    <div *ngIf="selectedNodeForAssignment" style="margin: 10px;">
+    <div *ngIf="selectedNodeForAssignment" class="assignment">
       <mat-form-field appearance="fill" style="width: 300px;">
         <mat-label>Person oder Gruppe für '{{ selectedNodeForAssignment?.annotations?.[0]?.content }}'</mat-label>
         <input matInput [formControl]="assignmentControl" [matAutocomplete]="auto">

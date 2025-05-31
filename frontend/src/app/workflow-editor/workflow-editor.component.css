@@ -2,4 +2,59 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  overflow: hidden;
+}
+
+.workflow-editor {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.symbol-palette {
+  width: 250px;
+  border-right: 1px solid #ccc;
+  flex-shrink: 0;
+}
+
+.editor-main {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: hidden;
+  min-width: 0;
+  height: 100%;
+}
+
+.toolbar {
+  height: 60px;
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.diagram-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.assignment {
+  height: 100px;
+  padding: 10px;
+  background: #f9f9f9;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+/* Syncfusion Diagram richtig anzeigen */
+::ng-deep #diagram {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
 }

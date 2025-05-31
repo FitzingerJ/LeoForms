@@ -5,6 +5,17 @@ import { TemplateModel } from './model/template.model';
 import { SurveyModel } from './model/survey.model';
 import {AnswerModel} from "./model/answer.model";
 
+export interface ReducedNode {
+  id: string;
+  label: string;
+  assignedTo?: {
+    name: string;
+    email?: string;
+    groupId?: string;
+  };
+  next: string[];
+}
+
 export interface FormInterface {
   name: string;
   creationDate: string;
@@ -36,6 +47,30 @@ export class DataService {
 
   constructor(private http: HttpClient) {
     this.forms = [];
+  }
+
+  private surveyDraft: any = null;
+
+  setSurveyDraft(draft: any): void {
+    this.surveyDraft = draft;
+  }
+
+  getSurveyDraft(): any {
+    return this.surveyDraft;
+  }
+
+  clearSurveyDraft(): void {
+    this.surveyDraft = null;
+  }
+
+  private currentWorkflow: ReducedNode[] = [];
+
+  setWorkflow(workflow: ReducedNode[]): void {
+    this.currentWorkflow = workflow;
+  }
+
+  getWorkflow(): ReducedNode[] {
+    return this.currentWorkflow;
   }
 
   getAllTemplates(): Observable<TemplateModel[]> {

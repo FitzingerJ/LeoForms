@@ -9,7 +9,11 @@
     </div>-->
 
   <div class="grid-child-green">
-    <markdown class="variable-binding" [data]="markdown"></markdown>
+    <div
+      class="variable-binding"
+      contenteditable="true"
+      (blur)="onFormEdit($event)">
+    </div>
   </div>
 
 </div>

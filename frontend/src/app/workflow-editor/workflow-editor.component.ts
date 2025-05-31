@@ -11,6 +11,22 @@ import {
 import { FormControl } from '@angular/forms';
 import { Observable, startWith, map } from 'rxjs';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { DataService, GroupInterface } from '../data.service';
+import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+
+interface Assignment {
+  name: string;
+  email?: string;
+  groupId?: string;
+}
+
+interface ReducedNode {
+  id: string;
+  label: string;
+  assignedTo?: Assignment;
+  next: string[];
+}
 
 @Component({
   selector: 'app-workflow-editor',
@@ -28,13 +44,18 @@ export class WorkflowEditorComponent implements OnInit {
   public tool: DiagramTools = DiagramTools.Default;
   public isConnectionMode = false;
   private firstNodeId: string | null = null;
+  templateId: string = '';
 
   assignmentControl = new FormControl();
   filteredAssignments: Observable<string[]> = new Observable();
-  availableAssignments: string[] = ['Direktor', 'Klassenvorstand', 'Eltern', 'Schüler:innen', 'Sekretariat', 'Schulwart', 'Schulärztin'];
+  availableAssignments: string[] = ['Direktor', 'Sekretariat'];
+  dataSource: GroupInterface[] = [];
   selectedNodeForAssignment: NodeModel | null = null;
 
+  constructor(private dataServ: DataService, private router: Router, private route: ActivatedRoute) {}
+
   ngOnInit(): void {
+    this.templateId = this.route.snapshot.queryParams['templateId'] || '';
     this.palettes = [
       {
         id: 'nodes',
@@ -43,10 +64,27 @@ export class WorkflowEditorComponent implements OnInit {
         title: 'Bausteine'
       }
     ];
+
+    this.dataServ.getGroups().subscribe((groups: GroupInterface[]) => {
+      this.dataSource = groups;
+      const groupNames = groups.map((group: GroupInterface) => group.name);
+      this.availableAssignments = [
+        ...this.availableAssignments,
+        ...groupNames.filter((name: string) => !this.availableAssignments.includes(name))
+      ];
+    });
+
     this.filteredAssignments = this.assignmentControl.valueChanges.pipe(
       startWith(''),
       map(value => this._filterAssignments(value || ''))
     );
+
+    // Eigene Eingabe (manuell) erkennen
+    this.assignmentControl.valueChanges.subscribe(value => {
+      if (typeof value === 'string' && value.includes('@')) {
+        this.setAssignment(value);
+      }
+    });
   }
 
   public getSymbols(): NodeModel[] {
@@ -145,8 +183,8 @@ export class WorkflowEditorComponent implements OnInit {
     // 2. Immer: Node zur Zuweisung anzeigen
     if (element?.annotations?.length > 0) {
       this.selectedNodeForAssignment = element;
-      const assigned = (element as any).assignedTo;
-      this.assignmentControl.setValue(assigned ?? '');
+      const assigned = (element as any).assignedTo?.name ?? '';
+      this.assignmentControl.setValue(assigned);
     }
   }
 
@@ -156,41 +194,85 @@ export class WorkflowEditorComponent implements OnInit {
   }
 
   onAssignmentSelected(event: MatAutocompleteSelectedEvent) {
-    if (this.selectedNodeForAssignment) {
-      (this.selectedNodeForAssignment as any).assignedTo = event.option.value;
-    }
+    this.setAssignment(event.option.value);
+  }
+
+  private setAssignment(value: string): void {
+    if (!this.selectedNodeForAssignment) return;
+    const isEmail = value.includes('@');
+    const assignment: Assignment = {
+      name: value,
+      ...(isEmail ? { email: value } : {})
+    };
+    (this.selectedNodeForAssignment as any).assignedTo = assignment;
   }
 
   public saveDiagram(): void {
-    const data = this.diagramComponent.saveDiagram();
-    const blob = new Blob([data], { type: 'application/json' });
+    // Diagramm als Objekt (nicht nur JSON-String) speichern
+    const data = JSON.parse(this.diagramComponent.saveDiagram());
+
+    // assignedTo in jedes Node-Objekt einfügen
+    for (const node of this.diagramComponent.nodes) {
+      const matchingNode = data.nodes.find((n: any) => n.id === node.id);
+      if (matchingNode && (node as any).assignedTo) {
+        matchingNode.assignedTo = (node as any).assignedTo;
+      }
+    }
+
+    // JSON erzeugen
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = 'leoforms-workflow.json';
     a.click();
     window.URL.revokeObjectURL(url);
+
+    // Debug-Ausgabe mit reduced Workflow
+    console.log(this.getReducedWorkflow());
+  }
+
+  public getReducedWorkflow(): any[] {
+    return this.diagramComponent.nodes.map((node: any) => {
+      return {
+        stepId: node.id,
+        label: node.annotations?.[0]?.content ?? '',
+        assignedTo: node.assignedTo ?? null
+      };
+    });
   }
 
   public loadDiagram(): void {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
 
-    input.onchange = (event: any) => {
-      const file = event.target.files[0];
-      if (!file) return;
+  input.onchange = (event: any) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const json = e.target?.result as string;
-        this.diagramComponent.loadDiagram(json);
-      };
-      reader.readAsText(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const json = e.target?.result as string;
+      this.diagramComponent.loadDiagram(json);
+
+      // ⬇ Nachladen der assignedTo-Zuweisungen (falls im JSON enthalten)
+      const parsed = JSON.parse(json);
+      if (parsed.nodes) {
+        for (const savedNode of parsed.nodes) {
+          const diagramNode = this.diagramComponent.getObject(savedNode.id) as any;
+          if (diagramNode && savedNode.assignedTo) {
+            diagramNode.assignedTo = savedNode.assignedTo;
+          }
+        }
+      }
     };
+    reader.readAsText(file);
+  };
 
-    input.click();
-  }
+  input.click();
+}
 
   public validateDiagram(): void {
     const nodes = this.diagramComponent.nodes as NodeModel[];
@@ -241,5 +323,34 @@ export class WorkflowEditorComponent implements OnInit {
     }
 
     alert('Validierung erfolgreich! 🎉');
+  }
+
+  onSubmitWorkflow(): void {
+    const nodes = this.diagramComponent.nodes as NodeModel[];
+    const connectors = this.diagramComponent.connectors as ConnectorModel[];
+
+    const result: ReducedNode[] = nodes
+      .filter(n => !!n.id)
+      .map(node => {
+        const outgoing = connectors
+          .filter(c => c.sourceID === node.id)
+          .map(c => c.targetID || '')
+          .filter(id => id !== '');
+
+        return {
+          id: node.id!,
+          label: node.annotations?.[0]?.content || '',
+          assignedTo: (node as any).assignedTo || undefined,
+          next: outgoing
+        };
+      });
+
+    this.dataServ.setWorkflow(result);
+    if (!this.templateId) {
+      alert('Fehler: Template-ID fehlt für Rückkehr.');
+      return;
+    }
+
+    this.router.navigate(['/cs', this.templateId]);
   }
 }

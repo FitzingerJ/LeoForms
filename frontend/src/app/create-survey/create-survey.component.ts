@@ -6,8 +6,10 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { FormControl } from '@angular/forms';
 import { Observable, startWith } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DataService, GroupInterface } from '../data.service';
+import { DataService, GroupInterface, ReducedNode } from '../data.service';
 import { MatRadioModule } from '@angular/material/radio';
+import { marked } from 'marked';
+import { AfterViewInit } from '@angular/core';
 
 import { MarkdownService } from 'ngx-markdown';
 import { map } from 'rxjs/operators';
@@ -17,8 +19,9 @@ import { map } from 'rxjs/operators';
   templateUrl: './create-survey.component.html',
   styleUrls: [ './create-survey.component.css' ]
 })
-export class CreateSurveyComponent implements OnInit {
+export class CreateSurveyComponent implements OnInit, AfterViewInit {
 
+  workflow: ReducedNode[] = [];
   separatorKeysCodes: number[] = [ ENTER, COMMA ];
   groupControl = new FormControl();
   filteredGroups: Observable<string[]>;
@@ -36,6 +39,9 @@ export class CreateSurveyComponent implements OnInit {
   markdown: any;
   formDesc: any;
   endDate?: Date;
+  renderedHtml: string = '';
+  editedFormHtml: string = '';
+  customRenderer: marked.Renderer = new marked.Renderer();
 
   constructor(public router: ActivatedRoute,
               public dataServ: DataService,
@@ -64,8 +70,25 @@ export class CreateSurveyComponent implements OnInit {
 
   }
 
+  onFormEdit(event: Event): void {
+    const target = event.target as HTMLElement;
+    this.editedFormHtml = target.innerHTML;
+  }
+
+  ngAfterViewInit(): void {
+    const variableBinding = document.querySelector('.variable-binding') as HTMLElement;
+
+    // Nur initial einmal setzen
+    if (variableBinding && this.editedFormHtml) {
+      variableBinding.innerHTML = this.editedFormHtml;
+    } else if (variableBinding && this.renderedHtml) {
+      variableBinding.innerHTML = this.renderedHtml;
+    }
+  }
+
   ngOnInit(): void {
     this.templateId = this.router.snapshot.params['id'];
+    const renderer = new marked.Renderer();
 
     this.dataServ.getTemplateById(this.templateId).subscribe(template => this.singleTemplate = template);
     this.dataServ.getTemplateById(this.templateId).subscribe(template => this.markdown = template.markdown);
@@ -74,8 +97,55 @@ export class CreateSurveyComponent implements OnInit {
 
     console.log(this.markdown);
 
+    this.workflow = this.dataServ.getWorkflow();
+    console.log('Geladener Workflow:', this.workflow);
+
+    const draft = this.dataServ.getSurveyDraft();
+    if (draft && draft.currentHtml) {
+      this.formName = draft.formName;
+      this.formDesc = draft.formDesc;
+      this.markdown = draft.markdown;
+      this.groups = draft.groups;
+      this.endDate = draft.endDate ? new Date(draft.endDate) : undefined;
+      this.useWorkflow = draft.useWorkflow;
+      this.templateId = draft.templateId;
+      this.editedFormHtml = draft.currentHtml;
+
+      setTimeout(() => {
+        const variableBinding = document.querySelector('.variable-binding') as HTMLElement;
+        if (variableBinding) {
+          variableBinding.innerHTML = this.editedFormHtml;
+        }
+      }, 0);
+    } else {
+      // Nur wenn KEIN Draft vorhanden ist, wird neu gerendert
+      this.dataServ.getTemplateById(this.templateId).subscribe(template => {
+        this.singleTemplate = template;
+        this.markdown = template.markdown;
+        this.formName = template.name;
+        this.formDesc = template.description;
+
+        marked.use({ renderer: this.customRenderer });
+        const rawHtml = marked(this.markdown || '');
+        const htmlContainer = document.createElement('div');
+        htmlContainer.innerHTML = rawHtml;
+
+        // 🖊 Textfelder aktivieren
+        htmlContainer.querySelectorAll('input[type="text"]').forEach(input => {
+          (input as HTMLInputElement).disabled = false;
+        });
+
+        this.renderedHtml = htmlContainer.innerHTML;
+        this.editedFormHtml = this.renderedHtml;
+
+        setTimeout(() => {
+          const el = document.querySelector('.variable-binding') as HTMLElement;
+          if (el) el.innerHTML = this.editedFormHtml;
+        }, 0);
+      });
+    }
     let dropdownId = "";
-    this.markdownService.renderer.listitem = function (text) {
+    renderer.listitem = function (text) {
       let fieldName;
       if (/\[x\]\s*/.test(text)) {
         console.log(text);
@@ -134,7 +204,7 @@ export class CreateSurveyComponent implements OnInit {
       }
     };
 
-    this.markdownService.renderer.table = function (header: string, body: string) {
+    renderer.table = function (header: string, body: string) {
       // Spezialfall Dropdown
       if (header.includes('[DROPDOWN]')) {
         const cleanHeader = header.replace('[DROPDOWN]', '').trim();
@@ -157,11 +227,59 @@ export class CreateSurveyComponent implements OnInit {
       `;
     };
 
+    marked.use({ renderer });
+
+    if (!this.editedFormHtml && this.renderedHtml) {
+      this.editedFormHtml = this.renderedHtml;
+    }
+
+    if (!this.editedFormHtml && this.renderedHtml) {
+      this.editedFormHtml = this.renderedHtml;
+    }
   }
 
   saveSurvey() {
-    // @ts-ignore
-    let inputElement = '<form action="#" id=\'daform\'>' + document.getElementsByClassName('variable-binding').item(0).innerHTML + '<button onclick="submitData()">Antworten abschicken</button></form>';
+    // 🧠 Stelle sicher, dass der letzte Fokuswechsel abgeschlossen ist
+    const activeElement = document.activeElement as HTMLElement;
+    if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+      activeElement.blur();
+    }
+
+    const variableBinding = document.querySelector('.variable-binding') as HTMLElement;
+    if (!variableBinding) return;
+
+    // 🧽 DOM klonen und Input-Werte eintragen
+    const cloned = variableBinding.cloneNode(true) as HTMLElement;
+
+    cloned.querySelectorAll('input').forEach((input: HTMLInputElement) => {
+      if (input.type === 'text') {
+        input.setAttribute('value', input.value);
+      } else if (input.type === 'checkbox' || input.type === 'radio') {
+        if (input.checked) {
+          input.setAttribute('checked', 'true');
+        } else {
+          input.removeAttribute('checked');
+        }
+      }
+    });
+
+    cloned.querySelectorAll('select').forEach((select: HTMLSelectElement) => {
+      const selected = select.querySelector('option:checked');
+      if (selected) {
+        select.querySelectorAll('option').forEach(option => option.removeAttribute('selected'));
+        selected.setAttribute('selected', 'true');
+      }
+    });
+
+    cloned.querySelectorAll('textarea').forEach((textarea: HTMLTextAreaElement) => {
+      textarea.innerHTML = textarea.value;
+    });
+
+    // 🧾 Speichere finale HTML
+    this.editedFormHtml = cloned.innerHTML;
+
+    // 💾 Weiter wie gehabt...
+    const inputElement = `<form action="#" id='daform'>${this.editedFormHtml}<button onclick="submitData()">Antworten abschicken</button></form>`;
 
     let finalForm = '<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>\n' +
       '<script>function submitData() {\n' +
@@ -279,12 +397,58 @@ export class CreateSurveyComponent implements OnInit {
 
   useWorkflow: boolean = false;
 
-  openWorkflow() {
-    this.route.navigate(['/workflow'], {
-      queryParams: {
-        fromSurvey: true,
-        templateId: this.templateId
+  openWorkflow(): void {
+    const variableBinding = document.getElementsByClassName('variable-binding').item(0) as HTMLElement;
+    if (!variableBinding) return;
+
+    // 🧽 DOM klonen
+    const cloned = variableBinding.cloneNode(true) as HTMLElement;
+
+    // 🟩 INPUT-Werte (Text, Checkbox, Radio) sichern
+    cloned.querySelectorAll('input').forEach((input: HTMLInputElement) => {
+      if (input.type === 'text') {
+        input.setAttribute('value', input.value);
+      } else if (input.type === 'checkbox' || input.type === 'radio') {
+        if (input.checked) {
+          input.setAttribute('checked', 'true');
+        } else {
+          input.removeAttribute('checked');
+        }
       }
     });
-}
+
+    // 🟦 SELECT-Auswahl sichern
+    cloned.querySelectorAll('select').forEach((select: HTMLSelectElement) => {
+      const selected = select.querySelector('option:checked');
+      if (selected) {
+        select.querySelectorAll('option').forEach(option => option.removeAttribute('selected'));
+        selected.setAttribute('selected', 'true');
+      }
+    });
+
+    // 🟨 TEXTAREAS sichern (falls vorhanden)
+    cloned.querySelectorAll('textarea').forEach((textarea: HTMLTextAreaElement) => {
+      textarea.innerHTML = textarea.value;
+    });
+
+    // 🧾 Speichere finale HTML in Variable
+    this.editedFormHtml = cloned.innerHTML;
+
+    // 🚀 Speichern als Draft
+    this.dataServ.setSurveyDraft({
+      formName: this.formName,
+      formDesc: this.formDesc,
+      markdown: this.markdown,
+      groups: this.groups,
+      endDate: this.endDate,
+      useWorkflow: this.useWorkflow,
+      templateId: this.templateId,
+      currentHtml: this.editedFormHtml
+    });
+
+    // 🔁 Navigieren zur Workflow-Seite
+    this.route.navigate(['/workflow'], {
+      queryParams: { templateId: this.templateId }
+    });
+  }
 }
