@@ -59,15 +59,38 @@ export class SurveyInventoryComponent implements OnInit {
     if (!workflowJson) return survey.status || 'Offen';
 
     const rejected = localStorage.getItem('rejected-' + survey.id);
-    if (rejected === 'true') return '❌ Abgelehnt';
+    const rejectionReason = localStorage.getItem('rejectionReason-' + survey.id);
+    if (rejected === 'true') {
+      return rejectionReason
+        ? `❌ Abgelehnt: ${rejectionReason}`
+        : '❌ Abgelehnt';
+    }
 
-    const step = localStorage.getItem('step-' + survey.id);
-    if (step === 'done') return '✔️ Abgeschlossen';
+    const stepRaw = localStorage.getItem('step-' + survey.id);
+    if (stepRaw === 'done') return '✔️ Abgeschlossen';
 
-    const workflow = JSON.parse(workflowJson);
-    const index = Number(step || 0);
-    const label = workflow[index]?.label || '—';
-    return `🟡 Schritt ${index + 1} / ${workflow.length}: ${label}`;
+    const fullWorkflow: any[] = JSON.parse(workflowJson);
+    const visibleSteps = fullWorkflow.filter((n: any) => n.label !== 'Start' && n.label !== 'Ende');
+
+    let stepIndex = Number(stepRaw || '0');
+    const currentNode = fullWorkflow[stepIndex];
+
+    // 👇 Sichtbarkeitsprüfung wie im SurveyViewer
+    const isVisible = visibleSteps.some((v: any) => v.id === currentNode?.id);
+    if (!isVisible) {
+      const firstVisible = fullWorkflow.find((n: any) =>
+        visibleSteps.some((v: any) => v.id === n.id)
+      );
+      if (firstVisible) {
+        stepIndex = fullWorkflow.findIndex((n: any) => n.id === firstVisible.id);
+        localStorage.setItem('step-' + survey.id, stepIndex.toString());
+      }
+    }
+
+    const visibleIndex = visibleSteps.findIndex((n: any) => n.id === fullWorkflow[stepIndex]?.id);
+    const label = fullWorkflow[stepIndex]?.label || '—';
+
+    return `🟡 Schritt ${visibleIndex + 1} / ${visibleSteps.length}: ${label}`;
   }
 
 }

@@ -1,7 +1,13 @@
 <h2>Formular: {{surveyName}}</h2>
 
 <p *ngIf="workflow.length > 0">
-  <strong>Fortschritt:</strong> Schritt {{ stepIndex + 1 }} von {{ totalSteps }} ({{ currentStepLabel }})
+  <strong>Fortschritt:</strong>
+  <ng-container *ngIf="visibleStepIndex >= 0; else systemStep">
+    Schritt {{ visibleStepIndex + 1 }} von {{ visibleSteps.length }} ({{ currentStepLabel }})
+  </ng-container>
+  <ng-template #systemStep>
+    Systemschritt ({{ currentStepLabel }})
+  </ng-template>
 </p>
 
 <!-- 🧩 Genau wie in create-survey.component.html -->
@@ -14,4 +20,8 @@
 
 <div *ngIf="!canEdit" class="info">
   <p>Du bist derzeit nicht an der Reihe.</p>
+</div>
+<div *ngIf="isRejected()">
+  <strong>Ablehnungsgrund:</strong>
+  {{ getRejectionReason() }}
 </div>

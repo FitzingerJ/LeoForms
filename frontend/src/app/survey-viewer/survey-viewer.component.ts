@@ -9,6 +9,7 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { MockOidcSecurityService as OidcSecurityService } from '../auth/mock-oidc.service';
 import { DataService } from '../data.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-survey-viewer',
@@ -22,7 +23,9 @@ export class SurveyViewerComponent implements OnInit {
   surveyName = '';
   formHtml = '';
   workflow: any[] = [];
+  visibleSteps: any[] = [];
   stepIndex = 0;
+  visibleStepIndex = 0;
   currentUserEmail = '';
   canEdit = false;
   surveyId!: string;
@@ -30,7 +33,8 @@ export class SurveyViewerComponent implements OnInit {
   constructor(private route: ActivatedRoute,
               public oidc: OidcSecurityService,
               private cdr: ChangeDetectorRef,
-              private dataService: DataService) {}
+              private dataService: DataService,
+              private router: Router) {}
 
   ngOnInit(): void {
     this.surveyId = this.route.snapshot.params['id'];
@@ -42,8 +46,25 @@ export class SurveyViewerComponent implements OnInit {
       this.formHtml = localStorage.getItem('formHtml-' + this.surveyId) || '';
       this.workflow = JSON.parse(localStorage.getItem('workflow-' + this.surveyId) || '[]');
       this.stepIndex = Number(localStorage.getItem('step-' + this.surveyId) || '0');
+      this.visibleSteps = this.workflow.filter(n => n.label !== 'Start' && n.label !== 'Ende');
 
-      // 🧩 Jetzt DOM setzen
+      const currentStep = this.workflow[this.stepIndex];
+
+      // Wenn der aktuelle Schritt ein Start/Ende ist → such den nächsten sichtbaren
+      const isVisible = this.visibleSteps.some(s => s.id === currentStep?.id);
+      if (!isVisible) {
+        const firstVisibleIndex = this.workflow.findIndex(n => this.visibleSteps.some(v => v.id === n.id));
+        if (firstVisibleIndex !== -1) {
+          this.stepIndex = firstVisibleIndex;
+          localStorage.setItem('step-' + this.surveyId, this.stepIndex.toString());
+        }
+      }
+
+      const stepId = this.workflow[this.stepIndex]?.id;
+      const visibleIndex = this.visibleSteps.findIndex(s => s.id === stepId);
+      this.visibleStepIndex = visibleIndex >= 0 ? visibleIndex : 0;
+
+      // DOM setzen
       setTimeout(() => {
         const container = this.variableBindingRef?.nativeElement;
         if (container && this.formHtml) {
@@ -61,14 +82,13 @@ export class SurveyViewerComponent implements OnInit {
         }
       }, 0);
 
-      // 🔄 Benutzer-Check
       this.oidc.userData$.subscribe(userData => {
         this.currentUserEmail = userData.email;
 
-        const currentStep = this.workflow[this.stepIndex];
-        let assignedEmail = currentStep?.assignedTo?.email;
-        if (!assignedEmail && currentStep?.assignedTo?.name) {
-          assignedEmail = this.dataService.getEmailForRole(currentStep.assignedTo.name);
+        const currentVisibleStep = this.visibleSteps[this.visibleStepIndex];
+        let assignedEmail = currentVisibleStep?.assignedTo?.email;
+        if (!assignedEmail && currentVisibleStep?.assignedTo?.name) {
+          assignedEmail = this.dataService.getEmailForRole(currentVisibleStep.assignedTo.name);
         }
 
         this.canEdit = assignedEmail === this.currentUserEmail;
@@ -78,35 +98,47 @@ export class SurveyViewerComponent implements OnInit {
   }
 
   confirm(): void {
-    // Schritt abschließen: zum nächsten übergehen
     if (this.stepIndex + 1 < this.workflow.length) {
       this.stepIndex++;
       localStorage.setItem('step-' + this.surveyId, this.stepIndex.toString());
     } else {
-      // Ende erreicht: zu Answers-Seite oder abgeschlossen markieren
       localStorage.setItem('step-' + this.surveyId, 'done');
     }
 
-    // Zurück zur Übersicht oder direkt aktualisieren
     window.location.href = '/survey_inv';
   }
 
   reject(): void {
-    // Ablehnen → zurück zum Ersteller (Index 0)
+    const reason = prompt('Bitte gib einen Grund für die Ablehnung ein:');
+    if (reason === null || reason.trim() === '') {
+      alert('Du musst einen Ablehnungsgrund angeben.');
+      return;
+    }
+
+    localStorage.setItem('rejectionReason-' + this.surveyId, reason);
     this.stepIndex = 0;
     localStorage.setItem('step-' + this.surveyId, '0');
-
-    // 🟥 Markiere als abgelehnt
     localStorage.setItem('rejected-' + this.surveyId, 'true');
 
     window.location.href = '/survey_inv';
   }
 
   get currentStepLabel(): string {
-    return this.workflow[this.stepIndex]?.label || '';
+    if (this.visibleStepIndex === -1) {
+      return this.workflow[this.stepIndex]?.label || '';
+    }
+    return this.visibleSteps[this.visibleStepIndex]?.label || '';
   }
 
   get totalSteps(): number {
-    return this.workflow.length;
+    return this.visibleSteps.length;
+  }
+
+  isRejected(): boolean {
+    return localStorage.getItem('rejected-' + this.surveyId) === 'true';
+  }
+
+  getRejectionReason(): string {
+    return localStorage.getItem('rejectionReason-' + this.surveyId) || '';
   }
 }

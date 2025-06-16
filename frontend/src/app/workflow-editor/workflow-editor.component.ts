@@ -96,10 +96,10 @@ export class WorkflowEditorComponent implements OnInit {
         ports: commonPorts
       },
       {
-        id: 'Formular',
+        id: 'Schritt',
         shape: { type: 'Flow', shape: 'Process' },
         style: { fill: '#28A745', strokeColor: 'white' },
-        annotations: [{ content: 'Formular' }],
+        annotations: [{ content: 'Schritt' }],
         width: 100,
         height: 50,
         ports: commonPorts
@@ -115,7 +115,7 @@ export class WorkflowEditorComponent implements OnInit {
       },
       {
         id: 'Rücksprung',
-        shape: { type: 'Flow', shape: 'Document' },
+        shape: { type: 'Basic', shape: 'Hexagon' },
         style: { fill: '#6F42C1', strokeColor: 'white' },
         annotations: [{ content: 'Rücksprung' }],
         width: 100,
@@ -171,11 +171,17 @@ export class WorkflowEditorComponent implements OnInit {
     }
 
     // 2. Immer: Node zur Zuweisung anzeigen
-    if (element?.annotations?.length > 0) {
-      this.selectedNodeForAssignment = element;
-      const assigned = (element as any).assignedTo?.name ?? '';
-      this.assignmentControl.setValue(assigned);
+    const label = element?.annotations?.[0]?.content;
+
+    if (label === 'Start' || label === 'Ende') {
+      this.selectedNodeForAssignment = null;
+      this.assignmentControl.setValue('');
+      return;
     }
+
+    this.selectedNodeForAssignment = element;
+    const assigned = (element as any).assignedTo?.name ?? '';
+    this.assignmentControl.setValue(assigned);
   }
 
   private _filterAssignments(value: string): string[] {
@@ -195,6 +201,10 @@ export class WorkflowEditorComponent implements OnInit {
       ...(isEmail ? { email: value } : {})
     };
     (this.selectedNodeForAssignment as any).assignedTo = assignment;
+    if (this.selectedNodeForAssignment?.annotations?.length) {
+      const baseLabel = this.selectedNodeForAssignment?.annotations?.[0]?.content?.split('\n')[0] || '';
+      this.selectedNodeForAssignment.annotations[0].content = `${baseLabel}\n(${assignment.name})`;
+    }
   }
 
   public saveDiagram(): void {
