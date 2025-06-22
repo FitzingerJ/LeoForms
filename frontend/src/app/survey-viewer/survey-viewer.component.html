@@ -2,11 +2,16 @@
 
 <p *ngIf="workflow.length > 0">
   <strong>Fortschritt:</strong>
-  <ng-container *ngIf="visibleStepIndex >= 0; else systemStep">
-    Schritt {{ visibleStepIndex + 1 }} von {{ visibleSteps.length }} ({{ currentStepLabel }})
+  <ng-container *ngIf="isRejected(); else regularStep">
+    ❌ Abgelehnt
   </ng-container>
-  <ng-template #systemStep>
-    Systemschritt ({{ currentStepLabel }})
+  <ng-template #regularStep>
+    <ng-container *ngIf="visibleStepIndex >= 0; else systemStep">
+      Schritt {{ visibleStepIndex + 1 }} von {{ visibleSteps.length }} ({{ currentStepLabel }})
+    </ng-container>
+    <ng-template #systemStep>
+      Systemschritt ({{ currentStepLabel }})
+    </ng-template>
   </ng-template>
 </p>
 
@@ -18,10 +23,10 @@
   <button mat-raised-button color="warn" (click)="reject()">Ablehnen</button>
 </div>
 
-<div *ngIf="!canEdit" class="info">
+<div *ngIf="!canEdit && !isRejected()" class="info">
   <p>Du bist derzeit nicht an der Reihe.</p>
 </div>
-<div *ngIf="isRejected()">
-  <strong>Ablehnungsgrund:</strong>
-  {{ getRejectionReason() }}
+
+<div *ngIf="isRejected()" class="info">
+  <strong>Ablehnungsgrund:</strong> {{ getRejectionReason() }}
 </div>

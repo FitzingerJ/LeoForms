@@ -63,6 +63,7 @@ export class SurveyViewerComponent implements OnInit {
       const stepId = this.workflow[this.stepIndex]?.id;
       const visibleIndex = this.visibleSteps.findIndex(s => s.id === stepId);
       this.visibleStepIndex = visibleIndex >= 0 ? visibleIndex : 0;
+      const wasRejected = localStorage.getItem('rejected-' + this.surveyId) === 'true';
 
       // DOM setzen
       setTimeout(() => {
@@ -91,7 +92,7 @@ export class SurveyViewerComponent implements OnInit {
           assignedEmail = this.dataService.getEmailForRole(currentVisibleStep.assignedTo.name);
         }
 
-        this.canEdit = assignedEmail === this.currentUserEmail;
+        this.canEdit = assignedEmail === this.currentUserEmail && !wasRejected;
         this.cdr.detectChanges();
       });
     });
