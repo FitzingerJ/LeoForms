@@ -73,27 +73,71 @@ export class SurveyInventoryComponent implements OnInit {
     const stepRaw = localStorage.getItem('step-' + survey.id);
     if (stepRaw === 'done') return '✔️ Abgeschlossen';
 
-    const fullWorkflow: any[] = JSON.parse(workflowJson);
-    const visibleSteps = fullWorkflow.filter((n: any) => n.label !== 'Start' && n.label !== 'Ende');
+    const fullWorkflow: any[] = this.sortWorkflow(JSON.parse(workflowJson));
+    const visibleSteps = fullWorkflow.filter(
+      (s: any) => s.label !== 'Start' && s.label !== 'Ende'
+    );
 
     let stepIndex = Number(stepRaw || '0');
-    const currentNode = fullWorkflow[stepIndex];
+    let currentStep = fullWorkflow[stepIndex];
 
-    // 👇 Sichtbarkeitsprüfung wie im SurveyViewer
-    const isVisible = visibleSteps.some((v: any) => v.id === currentNode?.id);
-    if (!isVisible) {
-      const firstVisible = fullWorkflow.find((n: any) =>
-        visibleSteps.some((v: any) => v.id === n.id)
+    // Sicherstellen, dass wir keinen Systemstep erwischen
+    if (currentStep?.label === 'Start' || currentStep?.label === 'Ende') {
+      const firstVisible = fullWorkflow.find(
+        (n: any) => n.label !== 'Start' && n.label !== 'Ende'
       );
-      if (firstVisible) {
-        stepIndex = fullWorkflow.findIndex((n: any) => n.id === firstVisible.id);
-      }
+      if (!firstVisible) return '—';
+      stepIndex = fullWorkflow.findIndex(n => n.id === firstVisible.id);
+      currentStep = firstVisible;
     }
 
-    const visibleIndex = visibleSteps.findIndex((n: any) => n.id === fullWorkflow[stepIndex]?.id);
-    const label = fullWorkflow[stepIndex]?.label || '—';
+    if (!currentStep) return '—';
 
-    return `🟡 Schritt ${visibleIndex + 1} / ${visibleSteps.length}: ${label}`;
+    const currentLabel = currentStep.label || '—';
+    const currentId = currentStep.id;
+
+    const currentVisibleIndex = visibleSteps.findIndex(s => s.id === currentId);
+
+    // Verzweigung
+    if (Array.isArray(currentStep.assignedTo)) {
+      const assigned = currentStep.assignedTo;
+      const key = `branchStatus-${survey.id}`;
+      const statusJson = localStorage.getItem(key);
+      const status = statusJson ? JSON.parse(statusJson) : {};
+      const done = (status?.[currentId]?.done || []) as string[];
+
+      return `🔀 ${currentLabel} (${done.length} / ${assigned.length} bestätigt)`;
+    }
+
+    if (currentVisibleIndex === -1) return `🟡 ${currentLabel}`;
+
+    return `🟡 Schritt ${currentVisibleIndex + 1} / ${visibleSteps.length}: ${currentLabel}`;
   }
 
+
+  private sortWorkflow(workflow: any[]): any[] {
+    const map = new Map<string, any>();
+    const visited = new Set<string>();
+    const sorted: any[] = [];
+
+    for (const step of workflow) map.set(step.id, step);
+
+    const start = workflow.find(s => s.label === 'Start');
+    if (!start) return workflow;
+
+    const dfs = (node: any) => {
+      if (!node || visited.has(node.id)) return;
+      visited.add(node.id);
+      sorted.push(node);
+
+      const nextIds = Array.isArray(node.next) ? node.next : [node.next];
+      for (const nextId of nextIds) {
+        const nextStep = map.get(nextId);
+        dfs(nextStep);
+      }
+    };
+
+    dfs(start);
+    return sorted;
+  }
 }

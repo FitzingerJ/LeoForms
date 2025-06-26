@@ -10,7 +10,7 @@
       ✅ Formular abgeschlossen
     </ng-container>
     <ng-template #notDone>
-      {{ progressText }}
+      <pre style="white-space: pre-wrap;">{{ progressText }}</pre>
       <ng-container *ngIf="isBranchStep(workflow[stepIndex])">
         ({{ currentBranchUserList }})
         </ng-container>

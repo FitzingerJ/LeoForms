@@ -273,16 +273,26 @@ export class SurveyViewerComponent implements OnInit {
 
     if (index === -1) return `Unbekannter Schritt: ${this.currentStepLabel}`;
 
-    let base = `Schritt ${index + 1} / ${visibleSteps.length}: ${this.currentStepLabel}`;
+    let lines: string[] = [];
+    lines.push(`Schritt ${index + 1} / ${visibleSteps.length}: ${this.currentStepLabel}`);
 
     if (this.isBranchStep(current)) {
       const assigned = current.assignedTo || [];
       const status = this.getStepStatus(current.id);
       const done = (status?.[current.id]?.done || []) as string[];
 
-      base += ` (${done.length} / ${assigned.length} bestätigt)`;
+      const confirmed = assigned.filter((a: any) =>
+        done.includes(a.email || this.dataService.getEmailForRole(a.name))
+      );
+
+      const confirmedList = confirmed
+        .map((a: any) => a.name || a.email)
+        .join(', ');
+
+      lines.push(`${done.length} / ${assigned.length} bestätigt`);
+      if (done.length > 0) lines.push(`✅ Bereits bestätigt: ${confirmedList}`);
     }
 
-    return base;
+    return lines.join('\n');
   }
 }
