@@ -32,7 +32,8 @@ import { WorkflowEditorComponent } from './workflow-editor/workflow-editor.compo
 import { SymbolPaletteModule } from '@syncfusion/ej2-angular-diagrams';
 import { MatRadioModule } from '@angular/material/radio';
 import { SurveyViewerComponent } from './survey-viewer/survey-viewer.component';
-
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatChipInput } from '@angular/material/chips';
 
 @NgModule({
   declarations: [
@@ -69,6 +70,8 @@ import { SurveyViewerComponent } from './survey-viewer/survey-viewer.component';
     DiagramModule,
     SymbolPaletteModule,
     MatRadioModule,
+    MatChipsModule,
+    MatFormFieldModule,
     MarkdownModule.forRoot({
       markedOptions: {
         provide: MarkedOptions,

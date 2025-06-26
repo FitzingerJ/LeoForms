@@ -6,11 +6,20 @@
     ❌ Abgelehnt
   </ng-container>
   <ng-template #regularStep>
-    <ng-container *ngIf="visibleStepIndex >= 0; else systemStep">
-      Schritt {{ visibleStepIndex + 1 }} von {{ visibleSteps.length }} ({{ currentStepLabel }})
+    <ng-container *ngIf="isDoneStep(); else notDone">
+      ✅ Formular abgeschlossen
     </ng-container>
-    <ng-template #systemStep>
-      Systemschritt ({{ currentStepLabel }})
+    <ng-template #notDone>
+      {{ progressText }}
+      <ng-container *ngIf="isBranchStep(workflow[stepIndex])">
+        ({{ currentBranchUserList }})
+        </ng-container>
+      <ng-template #systemStep>
+        Systemschritt ({{ currentStepLabel }})
+        <div style="font-size: 12px; color: gray">
+          stepIndex={{stepIndex}}, visibleStepIndex={{visibleStepIndex}}, label="{{currentStepLabel}}"
+        </div>
+      </ng-template>
     </ng-template>
   </ng-template>
 </p>

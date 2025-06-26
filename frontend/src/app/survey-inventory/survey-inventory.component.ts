@@ -31,7 +31,11 @@ export class SurveyInventoryComponent implements OnInit {
           if (!workflowJson) return true;
 
           const workflow = JSON.parse(workflowJson);
-          const assignedTo = workflow[stepIndex]?.assignedTo?.email;
+          const visibleSteps = workflow.filter((n: any) => n.label !== 'Start' && n.label !== 'Ende');
+          const firstRealStep = visibleSteps[0];
+          const assignedTo = Array.isArray(firstRealStep?.assignedTo)
+            ? (firstRealStep.assignedTo.map((a: any) => a.email).includes(email))
+            : (firstRealStep?.assignedTo?.email === email);
           const creator = localStorage.getItem('creator-' + s.id);
 
           return creator === email || assignedTo === email;
@@ -83,7 +87,6 @@ export class SurveyInventoryComponent implements OnInit {
       );
       if (firstVisible) {
         stepIndex = fullWorkflow.findIndex((n: any) => n.id === firstVisible.id);
-        localStorage.setItem('step-' + survey.id, stepIndex.toString());
       }
     }
 

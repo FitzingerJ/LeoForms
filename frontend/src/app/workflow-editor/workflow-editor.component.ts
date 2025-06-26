@@ -14,6 +14,13 @@ import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { DataService } from '../data.service';
 import { Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
+import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import { MatChipInputEvent } from '@angular/material/chips';
+import { MatChipInput } from '@angular/material/chips';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 interface Assignment {
   name: string;
@@ -37,6 +44,9 @@ export class WorkflowEditorComponent implements OnInit {
   @ViewChild('diagram') diagramComponent!: DiagramComponent;
   @ViewChild('symbolPalette') symbolPaletteComponent!: SymbolPaletteComponent;
 
+  readonly separatorKeysCodes = [ENTER, COMMA] as const;
+  
+  assignmentList: string[] = [];
   public nodes: NodeModel[] = [];
   public connectors: ConnectorModel[] = [];
   public palettes: any[] = [];
@@ -68,13 +78,6 @@ export class WorkflowEditorComponent implements OnInit {
       startWith(''),
       map(value => this._filterAssignments(value || ''))
     );
-
-    // Eigene Eingabe (manuell) erkennen
-    this.assignmentControl.valueChanges.subscribe(value => {
-      if (typeof value === 'string' && value.includes('@')) {
-        this.setAssignment(value);
-      }
-    });
   }
 
   public getSymbols(): NodeModel[] {
@@ -180,7 +183,11 @@ export class WorkflowEditorComponent implements OnInit {
     }
 
     this.selectedNodeForAssignment = element;
-    const assigned = (element as any).assignedTo?.name ?? '';
+    const assigned = (element as any).assignedTo;
+    this.assignmentList = Array.isArray(assigned)
+      ? assigned.map((a: any) => a.name)
+      : assigned?.name ? [assigned.name] : [];
+    this.assignmentControl.setValue('');
     this.assignmentControl.setValue(assigned);
   }
 
@@ -189,20 +196,63 @@ export class WorkflowEditorComponent implements OnInit {
     return this.availableAssignments.filter(option => option.toLowerCase().includes(filterValue));
   }
 
-  onAssignmentSelected(event: MatAutocompleteSelectedEvent) {
-    this.setAssignment(event.option.value);
+  addAssignment(value: string) {
+    if (!this.assignmentList.includes(value)) {
+      this.assignmentList.push(value);
+      this.updateAssignmentInNode();
+    }
+    this.assignmentControl.setValue('');
+  }
+
+  addAssignmentFromText(event: MatChipInputEvent) {
+    const value = (event.value || '').trim();
+    if (value && !this.assignmentList.includes(value)) {
+      this.assignmentList.push(value);
+      this.updateAssignmentInNode();
+    }
+    this.assignmentControl.setValue('');
+  }
+
+  removeAssignment(value: string) {
+    const index = this.assignmentList.indexOf(value);
+    if (index >= 0) {
+      this.assignmentList.splice(index, 1);
+      this.updateAssignmentInNode();
+    }
+  }
+
+  updateAssignmentInNode() {
+    if (!this.selectedNodeForAssignment) return;
+
+    const isEmail = (v: string) => v.includes('@');
+    const assignments: Assignment[] = this.assignmentList.map(name => ({
+      name,
+      ...(isEmail(name) ? { email: name } : {})
+    }));
+
+    (this.selectedNodeForAssignment as any).assignedTo = assignments;
+    const baseLabel = this.selectedNodeForAssignment.annotations?.[0]?.content?.split('\n')[0] || '';
+    this.selectedNodeForAssignment.annotations![0].content = `${baseLabel}\n(${this.assignmentList.join(', ')})`;
+  }
+
+  onAssignmentSelected(event: MatAutocompleteSelectedEvent): void {
+    const value = event.option.value;
+    this.setAssignment(value);
   }
 
   private setAssignment(value: string): void {
     if (!this.selectedNodeForAssignment) return;
+
     const isEmail = value.includes('@');
     const assignment: Assignment = {
       name: value,
       ...(isEmail ? { email: value } : {})
     };
+
     (this.selectedNodeForAssignment as any).assignedTo = assignment;
-    if (this.selectedNodeForAssignment?.annotations?.length) {
-      const baseLabel = this.selectedNodeForAssignment?.annotations?.[0]?.content?.split('\n')[0] || '';
+
+    if (this.selectedNodeForAssignment.annotations?.length) {
+      const baseLabel = this.selectedNodeForAssignment.annotations[0].content?.split('\n')[0] || '';
       this.selectedNodeForAssignment.annotations[0].content = `${baseLabel}\n(${assignment.name})`;
     }
   }
@@ -231,48 +281,52 @@ export class WorkflowEditorComponent implements OnInit {
 
     // Debug-Ausgabe mit reduced Workflow
     console.log(this.getReducedWorkflow());
-  }
+    }
 
-  public getReducedWorkflow(): any[] {
-    return this.diagramComponent.nodes.map((node: any) => {
-      return {
-        stepId: node.id,
-        label: node.annotations?.[0]?.content ?? '',
-        assignedTo: node.assignedTo ?? null
-      };
-    });
-  }
+    public getReducedWorkflow(): any[] {
+      return this.diagramComponent.nodes.map((node: any) => {
+        return {
+          stepId: node.id,
+          label: node.annotations?.[0]?.content ?? '',
+          assignedTo: node.assignedTo ?? null
+        };
+      });
+    }
 
-  public loadDiagram(): void {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
+    public loadDiagram(): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
 
-  input.onchange = (event: any) => {
-    const file = event.target.files[0];
-    if (!file) return;
+    input.onchange = (event: any) => {
+      const file = event.target.files[0];
+      if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const json = e.target?.result as string;
-      this.diagramComponent.loadDiagram(json);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const json = e.target?.result as string;
+        this.diagramComponent.loadDiagram(json);
 
-      // ⬇ Nachladen der assignedTo-Zuweisungen (falls im JSON enthalten)
-      const parsed = JSON.parse(json);
-      if (parsed.nodes) {
-        for (const savedNode of parsed.nodes) {
-          const diagramNode = this.diagramComponent.getObject(savedNode.id) as any;
-          if (diagramNode && savedNode.assignedTo) {
-            diagramNode.assignedTo = savedNode.assignedTo;
+        // ⬇ Nachladen der assignedTo-Zuweisungen (falls im JSON enthalten)
+        const parsed = JSON.parse(json);
+        if (parsed.nodes) {
+          for (const savedNode of parsed.nodes) {
+            const diagramNode = this.diagramComponent.getObject(savedNode.id) as any;
+            if (diagramNode && savedNode.assignedTo) {
+              diagramNode.assignedTo = savedNode.assignedTo;
+            }
           }
         }
-      }
+      };
+      reader.readAsText(file);
     };
-    reader.readAsText(file);
-  };
 
-  input.click();
-}
+    input.click();
+  }
+
+  isBranchNode(): boolean {
+    return this.selectedNodeForAssignment?.id?.startsWith('Verzweigung') ?? false;
+  }
 
   public validateDiagram(): void {
     const nodes = this.diagramComponent.nodes as NodeModel[];
