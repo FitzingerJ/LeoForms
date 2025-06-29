@@ -100,13 +100,14 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.templateId = this.router.snapshot.params['id'];
-    this.editMode = this.router.snapshot.queryParams['editMode'] === 'true';
-    if (this.editMode && this.templateId) {
-      const name = localStorage.getItem('templateName-' + this.templateId);
+    const mappedTemplateId = localStorage.getItem('templateIdForSurvey-' + this.templateId);
+    if (mappedTemplateId) {
+      const name = localStorage.getItem('templateName-' + mappedTemplateId);
       if (name) {
         this.singleTemplate = { name } as TemplateModel;
       }
     }
+    this.editMode = this.router.snapshot.queryParams['editMode'] === 'true';
 
     if (this.editMode) {
       const wfRaw = localStorage.getItem('workflow-' + this.templateId);
@@ -130,11 +131,7 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
         }
       }
     }
-    
-    const templateName = localStorage.getItem('templateName-' + this.templateId);
-    if (templateName) {
-      this.singleTemplate = { name: templateName } as TemplateModel;
-    }
+  
     const renderer = new marked.Renderer();
 
     // 🧠 Schritt 0: Draft einmal sauber laden (ganz am Anfang in ngOnInit)
@@ -151,7 +148,7 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
       this.editedFormHtml = draft.currentHtml;
 
       const storedName = localStorage.getItem('templateName-' + this.templateId);
-      if (storedName) {
+      if (storedName && !this.singleTemplate?.name) {
         this.singleTemplate = { name: storedName } as TemplateModel;
       }
 
@@ -174,6 +171,11 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
         this.editedFormHtml = html;
         this.formName = formName;
         this.formDesc = formDesc;
+
+        const storedName = localStorage.getItem('templateName-' + this.templateId);
+        if (storedName && !this.singleTemplate?.name) {
+          this.singleTemplate = { name: storedName } as TemplateModel;
+        }
 
         const wfRaw = localStorage.getItem('workflow-' + this.templateId);
         if (wfRaw) {
@@ -205,7 +207,7 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
           groups: this.groups,
           endDate: this.endDate,
           useWorkflow: this.useWorkflow,
-          templateId: this.templateId,
+          templateId: this.singleTemplate?.id ?? this.templateId,
           currentHtml: this.editedFormHtml
         });
 
@@ -305,7 +307,7 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
           groups: this.groups,
           endDate: this.endDate,
           useWorkflow: this.useWorkflow,
-          templateId: this.templateId,
+          templateId: this.singleTemplate?.id ?? this.templateId,
           currentHtml: this.editedFormHtml
         });
 
@@ -403,13 +405,6 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
 
     if (!this.editedFormHtml && this.renderedHtml) {
       this.editedFormHtml = this.renderedHtml;
-    }
-
-    if (!this.singleTemplate && this.templateId) {
-      const storedName = localStorage.getItem('templateName-' + this.templateId);
-      if (storedName) {
-        this.singleTemplate = { name: storedName } as TemplateModel;
-      }
     }
   }
 
@@ -572,6 +567,7 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
       localStorage.setItem('formName-' + surveyId, this.formName);
       localStorage.setItem('formDesc-' + surveyId, this.formDesc);
       localStorage.setItem('endDate-' + surveyId, this.endDate?.toISOString() || '');
+      localStorage.setItem('templateIdForSurvey-' + surveyId, this.templateId);
 
       this.oidcSecurityService.checkAuth().subscribe(({ userData }) => {
         localStorage.setItem('creator-' + surveyId, userData.email);
@@ -685,7 +681,7 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
       groups: this.groups,
       endDate: this.endDate,
       useWorkflow: this.useWorkflow,
-      templateId: this.templateId,
+      templateId: this.singleTemplate?.id ?? this.templateId,
       currentHtml: this.editedFormHtml
     });
 
