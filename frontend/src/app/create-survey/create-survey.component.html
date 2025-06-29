@@ -39,7 +39,8 @@
   <!-- Auswahl: Zielgruppe oder Dokumentenverlauf -->
   <div style="margin-bottom: 20px;">
     <mat-label>Verlaufstyp wählen:</mat-label><br><br>
-    <mat-radio-group [(ngModel)]="useWorkflow" [disabled]="editMode">
+    <mat-radio-group [ngModel]="useWorkflowModel"
+  (ngModelChange)="onWorkflowTypeChange($event)" [disabled]="editMode && hasExistingWorkflowType">
       <mat-radio-button [value]="false">Einfache Zielgruppe</mat-radio-button>
       <mat-radio-button [value]="true">Dokumentenverlauf definieren</mat-radio-button>
     </mat-radio-group>

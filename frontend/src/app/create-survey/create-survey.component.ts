@@ -46,6 +46,8 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
   editedFormHtml: string = '';
   customRenderer: marked.Renderer = new marked.Renderer();
   editMode: boolean = false;
+  hasExistingWorkflowType: boolean = false;
+  useWorkflowModel: boolean = false;
 
   constructor(public router: ActivatedRoute,
               public dataServ: DataService,
@@ -90,10 +92,45 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
     } else if (variableBinding && this.renderedHtml) {
       variableBinding.innerHTML = this.renderedHtml;
     }
+
+    console.log('editMode:', this.editMode);
+    console.log('hasExistingWorkflowType:', this.hasExistingWorkflowType);
+    console.log('useWorkflowModel:', this.useWorkflowModel);
   }
 
   ngOnInit(): void {
     this.templateId = this.router.snapshot.params['id'];
+    this.editMode = this.router.snapshot.queryParams['editMode'] === 'true';
+    if (this.editMode && this.templateId) {
+      const name = localStorage.getItem('templateName-' + this.templateId);
+      if (name) {
+        this.singleTemplate = { name } as TemplateModel;
+      }
+    }
+
+    if (this.editMode) {
+      const wfRaw = localStorage.getItem('workflow-' + this.templateId);
+      const groupRaw = localStorage.getItem('groups-' + this.templateId);
+
+      if (wfRaw) {
+        this.workflow = JSON.parse(wfRaw);
+        if (this.workflow.length > 0) {
+          this.hasExistingWorkflowType = true;
+          this.useWorkflowModel = true;
+          this._useWorkflow = true;
+        }
+      }
+
+      if (groupRaw) {
+        this.groups = JSON.parse(groupRaw);
+        if (this.groups.length > 0) {
+          this.hasExistingWorkflowType = true;
+          this.useWorkflowModel = false;
+          this._useWorkflow = false;
+        }
+      }
+    }
+    
     const templateName = localStorage.getItem('templateName-' + this.templateId);
     if (templateName) {
       this.singleTemplate = { name: templateName } as TemplateModel;
@@ -215,8 +252,6 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
     this.workflow = this.dataServ.getWorkflow();
     console.log('Geladener Workflow:', this.workflow);
 
-    this.editMode = this.router.snapshot.queryParams['editMode'] === 'true';
-
     if (this.templateId) {
       const html = localStorage.getItem('formHtml-' + this.templateId);
       const formName = localStorage.getItem('formName-' + this.templateId);
@@ -249,6 +284,18 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
           if (el) el.innerHTML = this.editedFormHtml;
           setTimeout(() => this.restoreDomValues(), 0);
         }, 0);
+
+        if (this.editMode) {
+            if (this.groups.length > 0) {
+              this.useWorkflow = false;
+              this.hasExistingWorkflowType = true;
+            }
+
+            if (this.workflow.length > 0) {
+              this.useWorkflow = true;
+              this.hasExistingWorkflowType = true;
+            }
+          }
 
         // 🧠 Draft aktualisieren, aber NICHT überschreiben
         this.dataServ.setSurveyDraft({
@@ -364,6 +411,13 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
         this.singleTemplate = { name: storedName } as TemplateModel;
       }
     }
+  }
+
+  onWorkflowTypeChange(value: boolean) {
+    if (this.editMode && this.hasExistingWorkflowType) return;
+
+    this.useWorkflowModel = value;
+    this._useWorkflow = value; // interne Logik
   }
 
   restoreDomValues(): void {
@@ -572,7 +626,19 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
     return this.allGroups.filter(fruit => fruit.toLowerCase().includes(filterValue));
   }
 
-  useWorkflow: boolean = false;
+  private _useWorkflow: boolean = false;
+
+  get useWorkflow(): boolean {
+    return this._useWorkflow;
+  }
+
+  set useWorkflow(value: boolean) {
+    if (this.editMode && this.hasExistingWorkflowType) {
+      // Blockiere Änderungen im Edit-Modus mit vorhandenem Verlauf
+      return;
+    }
+    this._useWorkflow = value;
+  }
 
   openWorkflow(): void {
     const variableBinding = document.getElementsByClassName('variable-binding').item(0) as HTMLElement;
