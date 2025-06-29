@@ -45,6 +45,7 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
   renderedHtml: string = '';
   editedFormHtml: string = '';
   customRenderer: marked.Renderer = new marked.Renderer();
+  editMode: boolean = false;
 
   constructor(public router: ActivatedRoute,
               public dataServ: DataService,
@@ -93,18 +94,14 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.templateId = this.router.snapshot.params['id'];
+    const templateName = localStorage.getItem('templateName-' + this.templateId);
+    if (templateName) {
+      this.singleTemplate = { name: templateName } as TemplateModel;
+    }
     const renderer = new marked.Renderer();
 
-    this.dataServ.getTemplateById(this.templateId).subscribe(template => this.singleTemplate = template);
-    this.dataServ.getTemplateById(this.templateId).subscribe(template => this.markdown = template.markdown);
-    this.dataServ.getTemplateById(this.templateId).subscribe(template => this.formName = template.name);
-    this.dataServ.getTemplateById(this.templateId).subscribe(template => this.formDesc = template.description);
-
-    console.log(this.markdown);
-
-    this.workflow = this.dataServ.getWorkflow();
-    console.log('Geladener Workflow:', this.workflow);
-
+    // 🧠 Schritt 0: Draft einmal sauber laden (ganz am Anfang in ngOnInit)
+    // ⛔️ WENN gesetzt → RESTLICHEN Code abbrechen → Draft hat Vorrang
     const draft = this.dataServ.getSurveyDraft();
     if (draft && draft.currentHtml) {
       this.formName = draft.formName;
@@ -116,38 +113,157 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
       this.templateId = draft.templateId;
       this.editedFormHtml = draft.currentHtml;
 
+      const storedName = localStorage.getItem('templateName-' + this.templateId);
+      if (storedName) {
+        this.singleTemplate = { name: storedName } as TemplateModel;
+      }
+
       setTimeout(() => {
-        const variableBinding = document.querySelector('.variable-binding') as HTMLElement;
-        if (variableBinding) {
-          variableBinding.innerHTML = this.editedFormHtml;
-        }
+        const el = document.querySelector('.variable-binding') as HTMLElement;
+        if (el) el.innerHTML = this.editedFormHtml;
+        setTimeout(() => this.restoreDomValues(), 0);
       }, 0);
-    } else {
-      // Nur wenn KEIN Draft vorhanden ist, wird neu gerendert
-      this.dataServ.getTemplateById(this.templateId).subscribe(template => {
-        this.singleTemplate = template;
-        this.markdown = template.markdown;
-        this.formName = template.name;
-        this.formDesc = template.description;
 
-        marked.use({ renderer: this.customRenderer });
-        const rawHtml = marked(this.markdown || '');
-        const htmlContainer = document.createElement('div');
-        htmlContainer.innerHTML = rawHtml;
+      return; // ⛔️ NICHTS anderes ausführen danach
+    }
 
-        // 🖊 Textfelder aktivieren
-        htmlContainer.querySelectorAll('input[type="text"]').forEach(input => {
-          (input as HTMLInputElement).disabled = false;
-        });
+    // 🟦 Schritt 1: LocalStorage laden, wenn Draft nicht da war
+    if (this.templateId) {
+      const html = localStorage.getItem('formHtml-' + this.templateId);
+      const formName = localStorage.getItem('formName-' + this.templateId);
+      const formDesc = localStorage.getItem('formDesc-' + this.templateId);
 
-        this.renderedHtml = htmlContainer.innerHTML;
-        this.editedFormHtml = this.renderedHtml;
+      if (html && formName && formDesc) {
+        this.editedFormHtml = html;
+        this.formName = formName;
+        this.formDesc = formDesc;
+
+        const wfRaw = localStorage.getItem('workflow-' + this.templateId);
+        if (wfRaw) {
+          this.workflow = JSON.parse(wfRaw);
+          if (this.workflow.length > 0) this.useWorkflow = true;
+        }
+
+        const groupRaw = localStorage.getItem('groups-' + this.templateId);
+        if (groupRaw) {
+          this.groups = JSON.parse(groupRaw);
+          if (this.groups.length > 0) this.useWorkflow = false;
+        }
+
+        this.endDate = localStorage.getItem('endDate-' + this.templateId)
+          ? new Date(localStorage.getItem('endDate-' + this.templateId)!)
+          : this.endDate;
 
         setTimeout(() => {
           const el = document.querySelector('.variable-binding') as HTMLElement;
           if (el) el.innerHTML = this.editedFormHtml;
+          setTimeout(() => this.restoreDomValues(), 0);
         }, 0);
+
+        // 🧠 Draft updaten (optional), aber keine weiteren Daten mehr überschreiben
+        this.dataServ.setSurveyDraft({
+          formName: this.formName,
+          formDesc: this.formDesc,
+          markdown: this.markdown,
+          groups: this.groups,
+          endDate: this.endDate,
+          useWorkflow: this.useWorkflow,
+          templateId: this.templateId,
+          currentHtml: this.editedFormHtml
+        });
+
+        return; // NICHT weitergehen
+      }
+    }
+
+    // 🟩 Schritt 2: Template komplett neu laden, wenn Draft + LocalStorage leer waren
+    this.dataServ.getTemplateById(this.templateId).subscribe(template => {
+      this.singleTemplate = template;
+      this.markdown = template.markdown;
+      this.formName = template.name;
+      this.formDesc = template.description;
+
+      const existingName = localStorage.getItem('templateName-' + this.templateId);
+      if (!existingName) {
+        localStorage.setItem('templateName-' + this.templateId, template.name ?? 'Unbenanntes Template');
+      }
+
+      this.formName = template.name;
+
+      marked.use({ renderer: this.customRenderer });
+      const rawHtml = marked(this.markdown || '');
+      const htmlContainer = document.createElement('div');
+      htmlContainer.innerHTML = rawHtml;
+
+      htmlContainer.querySelectorAll('input[type="text"]').forEach(input => {
+        (input as HTMLInputElement).disabled = false;
       });
+
+      this.renderedHtml = htmlContainer.innerHTML;
+      this.editedFormHtml = this.renderedHtml;
+
+      setTimeout(() => {
+        const el = document.querySelector('.variable-binding') as HTMLElement;
+        if (el) el.innerHTML = this.editedFormHtml;
+        setTimeout(() => this.restoreDomValues(), 0);
+      }, 0);
+    });
+
+
+    console.log(this.markdown);
+
+    this.workflow = this.dataServ.getWorkflow();
+    console.log('Geladener Workflow:', this.workflow);
+
+    this.editMode = this.router.snapshot.queryParams['editMode'] === 'true';
+
+    if (this.templateId) {
+      const html = localStorage.getItem('formHtml-' + this.templateId);
+      const formName = localStorage.getItem('formName-' + this.templateId);
+      const formDesc = localStorage.getItem('formDesc-' + this.templateId);
+
+      // ✅ Wichtig: Nur wenn alle Werte vorhanden sind, verwende sie und überspringe alles weitere!
+      if (html && formName && formDesc) {
+        this.editedFormHtml = html;
+        this.formName = formName;
+        this.formDesc = formDesc;
+
+        const wfRaw = localStorage.getItem('workflow-' + this.templateId);
+        if (wfRaw) {
+          this.workflow = JSON.parse(wfRaw);
+          if (this.workflow.length > 0) this.useWorkflow = true;
+        }
+
+        const groupRaw = localStorage.getItem('groups-' + this.templateId);
+        if (groupRaw) {
+          this.groups = JSON.parse(groupRaw);
+          if (this.groups.length > 0) this.useWorkflow = false;
+        }
+
+        this.endDate = localStorage.getItem('endDate-' + this.templateId)
+          ? new Date(localStorage.getItem('endDate-' + this.templateId)!)
+          : this.endDate;
+
+        setTimeout(() => {
+          const el = document.querySelector('.variable-binding') as HTMLElement;
+          if (el) el.innerHTML = this.editedFormHtml;
+          setTimeout(() => this.restoreDomValues(), 0);
+        }, 0);
+
+        // 🧠 Draft aktualisieren, aber NICHT überschreiben
+        this.dataServ.setSurveyDraft({
+          formName: this.formName,
+          formDesc: this.formDesc,
+          markdown: this.markdown,
+          groups: this.groups,
+          endDate: this.endDate,
+          useWorkflow: this.useWorkflow,
+          templateId: this.templateId,
+          currentHtml: this.editedFormHtml
+        });
+
+        return;
+      }
     }
     let dropdownId = "";
     renderer.listitem = function (text) {
@@ -241,9 +357,42 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
     if (!this.editedFormHtml && this.renderedHtml) {
       this.editedFormHtml = this.renderedHtml;
     }
+
+    if (!this.singleTemplate && this.templateId) {
+      const storedName = localStorage.getItem('templateName-' + this.templateId);
+      if (storedName) {
+        this.singleTemplate = { name: storedName } as TemplateModel;
+      }
+    }
+  }
+
+  restoreDomValues(): void {
+    const container = document.querySelector('.variable-binding') as HTMLElement;
+    if (!container) return;
+
+    // ✅ Inputs zurücksetzen
+    container.querySelectorAll('input').forEach((input: HTMLInputElement) => {
+      const val = input.getAttribute('value');
+      if (val !== null) input.value = val;
+
+      const isChecked = input.getAttribute('checked');
+      if (isChecked !== null) input.checked = true;
+    });
+
+    // ✅ Dropdowns
+    container.querySelectorAll('select').forEach((select: HTMLSelectElement) => {
+      const selected = select.querySelector('option[selected]') as HTMLOptionElement | null;
+      if (selected) selected.selected = true;
+    });
+
+    // ✅ Textareas
+    container.querySelectorAll('textarea').forEach((textarea: HTMLTextAreaElement) => {
+      textarea.value = textarea.innerHTML;
+    });
   }
 
   saveSurvey() {
+    this.workflow = this.dataServ.getWorkflow(); // 💥 Hole die aktuellste Version
     // 🧠 Stelle sicher, dass der letzte Fokuswechsel abgeschlossen ist
     const activeElement = document.activeElement as HTMLElement;
     if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
@@ -366,6 +515,9 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
       localStorage.setItem('formHtml-' + surveyId, finalHtml);
       localStorage.setItem('workflow-' + surveyId, workflowJson);
       localStorage.setItem('step-' + surveyId, '1');
+      localStorage.setItem('formName-' + surveyId, this.formName);
+      localStorage.setItem('formDesc-' + surveyId, this.formDesc);
+      localStorage.setItem('endDate-' + surveyId, this.endDate?.toISOString() || '');
 
       this.oidcSecurityService.checkAuth().subscribe(({ userData }) => {
         localStorage.setItem('creator-' + surveyId, userData.email);
@@ -470,6 +622,10 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
       templateId: this.templateId,
       currentHtml: this.editedFormHtml
     });
+
+    localStorage.setItem('formName-' + this.templateId, this.formName);
+    localStorage.setItem('formDesc-' + this.templateId, this.formDesc);
+    localStorage.setItem('endDate-' + this.templateId, this.endDate?.toISOString() || '');
 
     // 🔁 Navigieren zur Workflow-Seite
     this.route.navigate(['/workflow'], {

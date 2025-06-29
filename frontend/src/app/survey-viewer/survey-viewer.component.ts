@@ -32,6 +32,7 @@ export class SurveyViewerComponent implements OnInit {
   branchUserCount = 0;
   branchUserIndex = 0;
   currentStep: any;
+  canEditAfterRejection = false;
 
   constructor(private route: ActivatedRoute,
               public oidc: OidcSecurityService,
@@ -65,6 +66,9 @@ export class SurveyViewerComponent implements OnInit {
       this.oidc.userData$.subscribe(userData => {
         this.currentUserEmail = userData.email;
         const step = this.workflow[this.stepIndex];
+        const creator = localStorage.getItem('creator-' + this.surveyId);
+        const hasRuecksprung = this.workflow.some(s => this.isRuecksprungStep(s));
+        this.canEditAfterRejection = wasRejected && this.currentUserEmail === creator && hasRuecksprung;
 
         if (this.isBranchStep(step)) {
           const assigned = step.assignedTo.map((a: any) => a.email || this.dataService.getEmailForRole(a.name));
@@ -141,6 +145,9 @@ export class SurveyViewerComponent implements OnInit {
     const currentStep = this.workflow[this.stepIndex];
     const stepId = currentStep?.id;
     const isBranch = this.isBranchStep(currentStep);
+    const nextId = Array.isArray(currentStep.next) ? currentStep.next[0] : currentStep.next;
+    const nextStep = this.workflow.find(s => s.id === nextId);
+    const isRuecksprung = this.isRuecksprungStep(nextStep);
 
     if (isBranch) {
       const status = this.getStepStatus(stepId);
@@ -152,6 +159,17 @@ export class SurveyViewerComponent implements OnInit {
     localStorage.setItem('rejectionReason-' + this.surveyId, reason);
     localStorage.setItem('rejected-' + this.surveyId, 'true');
     localStorage.setItem('step-' + this.surveyId, '0');
+
+    if (isRuecksprung) {
+      const creator = localStorage.getItem('creator-' + this.surveyId);
+      if (creator === this.currentUserEmail) {
+        this.router.navigate(['/cs', this.surveyId], { queryParams: { editMode: 'true' } });
+      } else {
+        alert('Formular wurde zur Bearbeitung zurückgesendet.');
+        window.location.href = '/survey_inv';
+      }
+      return;
+    }
 
     window.location.href = '/survey_inv';
   }
@@ -209,11 +227,21 @@ export class SurveyViewerComponent implements OnInit {
   }
 
   private getFirstRealStepIndex(): number {
-    return this.workflow.findIndex(s => !this.isSystemStep(s));
+    return this.workflow.findIndex(s => !this.isSystemStep(s) && !this.isRuecksprungStep(s));
   }
 
   private getNextRealStepIndex(fromIndex: number): number {
-    return this.workflow.findIndex((s, i) => i > fromIndex && !this.isSystemStep(s));
+    return this.workflow.findIndex((s, i) => i > fromIndex && !this.isSystemStep(s) && !this.isRuecksprungStep(s));
+  }
+
+  public isRuecksprungStep(step: any): boolean {
+    return step?.label?.startsWith('Rücksprung');
+  }
+
+  openEdit(): void {
+    this.router.navigate(['/cs', this.surveyId], {
+      queryParams: { editMode: 'true' }
+    });
   }
 
   private renderDom(): void {
@@ -267,7 +295,7 @@ export class SurveyViewerComponent implements OnInit {
   }
 
   get progressText(): string {
-    const visibleSteps = this.workflow.filter(s => !this.isSystemStep(s));
+    const visibleSteps = this.workflow.filter(s => !this.isSystemStep(s) && !this.isRuecksprungStep(s));
     const current = this.workflow[this.stepIndex];
     const index = visibleSteps.findIndex(s => s.id === current?.id);
 

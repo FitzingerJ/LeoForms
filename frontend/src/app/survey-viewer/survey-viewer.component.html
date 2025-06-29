@@ -39,3 +39,7 @@
 <div *ngIf="isRejected()" class="info">
   <strong>Ablehnungsgrund:</strong> {{ getRejectionReason() }}
 </div>
+
+<div *ngIf="canEditAfterRejection" style="margin-top: 20px;">
+  <button mat-raised-button color="accent" (click)="openEdit()">Formular bearbeiten</button>
+</div>

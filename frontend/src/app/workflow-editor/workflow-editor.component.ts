@@ -65,6 +65,17 @@ export class WorkflowEditorComponent implements OnInit {
 
   ngOnInit(): void {
     this.templateId = this.route.snapshot.queryParams['templateId'] || '';
+
+    const saved = localStorage.getItem('workflow-' + this.templateId);
+    if (saved) {
+      const json = JSON.parse(saved);
+      this.diagramComponent?.loadDiagram(JSON.stringify({ nodes: json, connectors: [] }));
+      for (const node of json) {
+        const obj = this.diagramComponent?.getObject(node.id) as any;
+        if (obj && node.assignedTo) obj.assignedTo = node.assignedTo;
+      }
+    }
+
     this.palettes = [
       {
         id: 'nodes',
@@ -176,7 +187,7 @@ export class WorkflowEditorComponent implements OnInit {
     // 2. Immer: Node zur Zuweisung anzeigen
     const label = element?.annotations?.[0]?.content;
 
-    if (label === 'Start' || label === 'Ende') {
+    if (label === 'Start' || label === 'Ende' || label.startsWith('Rücksprung')) {
       this.selectedNodeForAssignment = null;
       this.assignmentControl.setValue('');
       return;

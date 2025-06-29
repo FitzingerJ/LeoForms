@@ -1,6 +1,9 @@
-<h2>Survey Erstellen</h2>
+<h2 *ngIf="!editMode">Survey Erstellen</h2>
+<h2 *ngIf="editMode">Survey Bearbeiten</h2>
 
-<h3>Template Name: {{singleTemplate?.name}}</h3>
+<h3>
+  Template Name: {{ singleTemplate?.name }}
+</h3>
 
 <div class="grid-container">
 
@@ -36,7 +39,7 @@
   <!-- Auswahl: Zielgruppe oder Dokumentenverlauf -->
   <div style="margin-bottom: 20px;">
     <mat-label>Verlaufstyp wählen:</mat-label><br><br>
-    <mat-radio-group [(ngModel)]="useWorkflow">
+    <mat-radio-group [(ngModel)]="useWorkflow" [disabled]="editMode">
       <mat-radio-button [value]="false">Einfache Zielgruppe</mat-radio-button>
       <mat-radio-button [value]="true">Dokumentenverlauf definieren</mat-radio-button>
     </mat-radio-group>
@@ -74,7 +77,7 @@
 
   <!-- Wenn Dokumentenverlauf gewählt ist -->
   <div *ngIf="useWorkflow" style="margin-bottom: 15px;">
-    <button mat-raised-button color="accent" (click)="openWorkflow()">Dokumentenverlauf definieren</button>
+    <button mat-raised-button color="accent" (click)="openWorkflow()">{{ editMode ? '📄 Dokumentenverlauf bearbeiten' : '📄 Dokumentenverlauf definieren' }}</button>
   </div>
 
   <mat-form-field appearance="fill">
