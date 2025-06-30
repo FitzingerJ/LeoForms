@@ -48,6 +48,7 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
   editMode: boolean = false;
   hasExistingWorkflowType: boolean = false;
   useWorkflowModel: boolean = false;
+  correctTemplateIdFromMapping: string = '';
 
   constructor(public router: ActivatedRoute,
               public dataServ: DataService,
@@ -100,8 +101,10 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.templateId = this.router.snapshot.params['id'];
+
     const mappedTemplateId = localStorage.getItem('templateIdForSurvey-' + this.templateId);
     if (mappedTemplateId) {
+      this.correctTemplateIdFromMapping = mappedTemplateId;
       const name = localStorage.getItem('templateName-' + mappedTemplateId);
       if (name) {
         this.singleTemplate = { name } as TemplateModel;
@@ -567,7 +570,8 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
       localStorage.setItem('formName-' + surveyId, this.formName);
       localStorage.setItem('formDesc-' + surveyId, this.formDesc);
       localStorage.setItem('endDate-' + surveyId, this.endDate?.toISOString() || '');
-      localStorage.setItem('templateIdForSurvey-' + surveyId, this.templateId);
+      const correctTemplateId = this.correctTemplateIdFromMapping || this.singleTemplate?.id || this.templateId;
+      localStorage.setItem('templateIdForSurvey-' + surveyId, correctTemplateId);
 
       this.oidcSecurityService.checkAuth().subscribe(({ userData }) => {
         localStorage.setItem('creator-' + surveyId, userData.email);
@@ -577,9 +581,31 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
       this.formName = '';
       this.formDesc = '';
 
+      const wasRejected = localStorage.getItem('rejected-' + this.templateId) === 'true';
+      const previousStep = localStorage.getItem('stepBeforeRejection-' + this.templateId);
+
+      if (wasRejected && previousStep && this.workflowUnchanged()) {
+        localStorage.setItem('step-' + surveyId, previousStep);
+        localStorage.removeItem('rejected-' + surveyId);
+        localStorage.removeItem('stepBeforeRejection-' + surveyId);
+        localStorage.removeItem('rejectionReason-' + surveyId);
+      }
+
       this.route.navigate(["/survey_inv"]);
     });
   }
+
+  private workflowUnchanged(): boolean { 
+      const oldRaw = localStorage.getItem('workflow-' + this.templateId);
+      if (!oldRaw) return false;
+
+      try {
+        const oldWorkflow = JSON.parse(oldRaw);
+        return JSON.stringify(oldWorkflow) === JSON.stringify(this.workflow);
+      } catch {
+        return false;
+      }
+    }
 
   selected(event: MatAutocompleteSelectedEvent): void {
     this.groups.push(event.option.viewValue);
@@ -689,11 +715,13 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
     localStorage.setItem('formDesc-' + this.templateId, this.formDesc);
     localStorage.setItem('endDate-' + this.templateId, this.endDate?.toISOString() || '');
 
-    const currentWorkflow = this.dataServ.getWorkflow();
-    localStorage.setItem('workflow-' + this.templateId, JSON.stringify(currentWorkflow));
-    // 🔁 Navigieren zur Workflow-Seite
+    const raw = localStorage.getItem('workflow-' + this.templateId);
+    //const currentWorkflow = this.dataServ.getWorkflow();
+    localStorage.setItem('workflow-' + this.templateId, JSON.stringify(raw ? JSON.parse(raw) : []));
+    const correctId = this.correctTemplateIdFromMapping || this.singleTemplate?.id || this.templateId;
+
     this.route.navigate(['/workflow'], {
-      queryParams: { templateId: this.templateId }
+      queryParams: { templateId: correctId }
     });
   }
 }

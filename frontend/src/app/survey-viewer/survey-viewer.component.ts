@@ -158,6 +158,7 @@ export class SurveyViewerComponent implements OnInit {
 
     localStorage.setItem('rejectionReason-' + this.surveyId, reason);
     localStorage.setItem('rejected-' + this.surveyId, 'true');
+    localStorage.setItem('stepBeforeRejection-' + this.surveyId, this.stepIndex.toString());
     localStorage.setItem('step-' + this.surveyId, '0');
 
     if (isRuecksprung) {
