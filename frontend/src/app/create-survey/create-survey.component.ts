@@ -689,6 +689,8 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
     localStorage.setItem('formDesc-' + this.templateId, this.formDesc);
     localStorage.setItem('endDate-' + this.templateId, this.endDate?.toISOString() || '');
 
+    const currentWorkflow = this.dataServ.getWorkflow();
+    localStorage.setItem('workflow-' + this.templateId, JSON.stringify(currentWorkflow));
     // 🔁 Navigieren zur Workflow-Seite
     this.route.navigate(['/workflow'], {
       queryParams: { templateId: this.templateId }

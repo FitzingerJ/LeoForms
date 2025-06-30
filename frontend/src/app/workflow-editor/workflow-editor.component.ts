@@ -63,18 +63,36 @@ export class WorkflowEditorComponent implements OnInit {
 
   constructor(private dataServ: DataService, private router: Router, private route: ActivatedRoute) {}
 
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      if (!this.diagramComponent) return;
+
+      const full = localStorage.getItem('fullWorkflow-' + this.templateId);
+      if (full) {
+        this.diagramComponent.loadDiagram(full);
+
+        const parsed = JSON.parse(full);
+        for (const node of parsed.nodes) {
+          const obj = this.diagramComponent.getObject(node.id) as any;
+          if (obj && node.assignedTo) {
+            obj.assignedTo = node.assignedTo;
+
+            const baseLabel = obj.annotations?.[0]?.content?.split('\n')[0] || '';
+            
+            // 👇 Unterstützt sowohl Array als auch einzelnes Assignment
+            const assignedNames = Array.isArray(node.assignedTo)
+              ? node.assignedTo.map((a: Assignment) => a.name).join(', ')
+              : node.assignedTo.name;
+
+            obj.annotations[0].content = `${baseLabel}\n(${assignedNames})`;
+          }
+        }
+      }
+    }, 0);
+  }
+
   ngOnInit(): void {
     this.templateId = this.route.snapshot.queryParams['templateId'] || '';
-
-    const saved = localStorage.getItem('workflow-' + this.templateId);
-    if (saved) {
-      const json = JSON.parse(saved);
-      this.diagramComponent?.loadDiagram(JSON.stringify({ nodes: json, connectors: [] }));
-      for (const node of json) {
-        const obj = this.diagramComponent?.getObject(node.id) as any;
-        if (obj && node.assignedTo) obj.assignedTo = node.assignedTo;
-      }
-    }
 
     this.palettes = [
       {
@@ -199,7 +217,11 @@ export class WorkflowEditorComponent implements OnInit {
       ? assigned.map((a: any) => a.name)
       : assigned?.name ? [assigned.name] : [];
     this.assignmentControl.setValue('');
-    this.assignmentControl.setValue(assigned);
+    if (Array.isArray(assigned)) {
+      this.assignmentControl.setValue(assigned.map((a: Assignment) => a.name).join(', '));
+    } else if (assigned?.name) {
+      this.assignmentControl.setValue(assigned.name);
+    }
   }
 
   private _filterAssignments(value: string): string[] {
@@ -415,6 +437,22 @@ export class WorkflowEditorComponent implements OnInit {
       alert('Fehler: Template-ID fehlt für Rückkehr.');
       return;
     }
+
+
+
+    // 🟩 Speichern reduzierte Workflow-Variante
+    localStorage.setItem('workflow-' + this.templateId, JSON.stringify(result));
+
+    // 🟦 Speichern vollständiger Workflow (inkl. style, shape, annotations etc.)
+    const full = JSON.parse(this.diagramComponent.saveDiagram());
+    for (const node of this.diagramComponent.nodes) {
+      const target = full.nodes.find((n: any) => n.id === node.id);
+      if (target && (node as any).assignedTo) {
+        target.assignedTo = (node as any).assignedTo;
+      }
+    }
+
+    localStorage.setItem('fullWorkflow-' + this.templateId, JSON.stringify(full));
 
     this.router.navigate(['/cs', this.templateId]);
   }
