@@ -550,8 +550,9 @@ export class CreateSurveyComponent implements OnInit, AfterViewInit {
     const step = '1';
 
     // @ts-ignore
-    const endDateStr = this.endDate ? 
-      this.endDate.toISOString().split('T')[0] : '';
+    const endDateStr = this.endDate
+      ? this.endDate.toLocaleDateString('sv-SE')
+      : '';
 
     const surveyDto: SurveyDTO = {
       creationDate: new Date().toISOString().substring(0, 10),
