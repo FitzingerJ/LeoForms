@@ -45,6 +45,14 @@ export class SurveyInventoryComponent implements OnInit {
     console.log(this.allSurveys);
   }
 
+  private isSystemStep(step: any): boolean {
+    return step?.label === 'Start' || step?.label === 'Ende';
+  }
+
+  private isRuecksprungStep(step: any): boolean {
+    return step?.label?.startsWith('Rücksprung');
+  }
+
   seeAnswers() {
     this.route.navigate(["/answers"]);
   }
@@ -75,17 +83,15 @@ export class SurveyInventoryComponent implements OnInit {
 
     const fullWorkflow: any[] = this.sortWorkflow(JSON.parse(workflowJson));
     const visibleSteps = fullWorkflow.filter(
-      (s: any) => s.label !== 'Start' && s.label !== 'Ende'
+      (s: any) => !this.isSystemStep(s) && !this.isRuecksprungStep(s)
     );
 
     let stepIndex = Number(stepRaw || '0');
     let currentStep = fullWorkflow[stepIndex];
 
-    // Sicherstellen, dass wir keinen Systemstep erwischen
-    if (currentStep?.label === 'Start' || currentStep?.label === 'Ende') {
-      const firstVisible = fullWorkflow.find(
-        (n: any) => n.label !== 'Start' && n.label !== 'Ende'
-      );
+    // Falls aktueller Schritt System- oder Rücksprung-Schritt ist → echten finden
+    if (this.isSystemStep(currentStep) || this.isRuecksprungStep(currentStep)) {
+      const firstVisible = fullWorkflow.find(s => !this.isSystemStep(s) && !this.isRuecksprungStep(s));
       if (!firstVisible) return '—';
       stepIndex = fullWorkflow.findIndex(n => n.id === firstVisible.id);
       currentStep = firstVisible;
