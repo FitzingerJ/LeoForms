@@ -1,12 +1,15 @@
 <h2>Template Erstellen</h2>
 <!-- Schnellvorlagen für Dokumentenverlauf -->
 <div style="margin-bottom: 20px;">
-  <h3>Dokumentenverlauf-Vorlagen</h3>
-  <mat-selection-list>
-    <mat-list-option *ngFor="let template of workflowTemplates" (click)="selectTemplate(template)">
-      {{ template.name }}
-    </mat-list-option>
-  </mat-selection-list>
+  <!-- Dropdown-Vorlagenauswahl -->
+<mat-form-field appearance="fill" style="max-width: 300px; width: 100%;">
+  <mat-label>Vorlagen</mat-label>
+    <mat-select (selectionChange)="selectTemplate($event.value)">
+      <mat-option *ngFor="let template of workflowTemplates" [value]="template">
+        {{ template.name }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
 </div>
 <div class="grid-container">
   <div class="grid-child-purple">

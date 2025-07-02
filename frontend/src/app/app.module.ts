@@ -34,6 +34,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { SurveyViewerComponent } from './survey-viewer/survey-viewer.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatChipInput } from '@angular/material/chips';
+import { MatSelectModule } from '@angular/material/select';
 
 @NgModule({
   declarations: [
@@ -72,6 +73,7 @@ import { MatChipInput } from '@angular/material/chips';
     MatRadioModule,
     MatChipsModule,
     MatFormFieldModule,
+    MatSelectModule,
     MarkdownModule.forRoot({
       markedOptions: {
         provide: MarkedOptions,
