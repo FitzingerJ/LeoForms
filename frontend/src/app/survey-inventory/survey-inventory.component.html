@@ -1,27 +1,36 @@
 <h2>Alle Surveys</h2>
 
+<!-- Filterzeile -->
+<div class="w3-margin-bottom" style="display:flex;align-items:center;gap:16px;">
+  <mat-slide-toggle [(ngModel)]="showOnlyOpen" (change)="applyFilters()">
+    Nur offene (wo ich gerade dran bin)
+  </mat-slide-toggle>
+
+  <span class="w3-small w3-text-grey">
+    Angezeigt: {{ filteredSurveys.length }} / {{ allSurveys.length }}
+  </span>
+</div>
+
 <head>
   <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
+
 <table class="w3-table-all">
   <thead class="w3-deep-purple">
-  <th>Erstellt</th>
-  <th>Name</th>
-  <th>Deadline</th>
-  <th>Empfänger</th>
-  <th>Status</th>
+    <th>Erstellt</th>
+    <th>Name</th>
+    <th>Deadline</th>
+    <th>Empfänger</th>
+    <th>Status</th>
   </thead>
 
-  <tr *ngFor="let survey of allSurveys"
-    [class.clickable]="hasWorkflow(survey.id)"
-    (click)="hasWorkflow(survey.id) && openSurvey(survey)">
-    <td>{{survey.creationDate}}</td>
-    <td>{{survey.name}}</td>
-    <td>{{survey.endDate}}</td>
+  <tr *ngFor="let survey of filteredSurveys"
+      [class.clickable]="hasWorkflow(survey.id)"
+      (click)="hasWorkflow(survey.id) && openSurvey(survey)">
+    <td>{{ survey.creationDate }}</td>
+    <td>{{ survey.name }}</td>
+    <td>{{ survey.endDate }}</td>
     <td>5AHTIM</td>
     <td>{{ getDisplayStatus(survey) }}</td>
   </tr>
-
 </table>
-
-

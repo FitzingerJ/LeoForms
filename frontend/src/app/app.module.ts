@@ -35,6 +35,7 @@ import { SurveyViewerComponent } from './survey-viewer/survey-viewer.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatChipInput } from '@angular/material/chips';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 @NgModule({
   declarations: [
@@ -73,6 +74,7 @@ import { MatSelectModule } from '@angular/material/select';
     MatRadioModule,
     MatChipsModule,
     MatFormFieldModule,
+    MatSlideToggleModule,
     MatSelectModule,
     MarkdownModule.forRoot({
       markedOptions: {
