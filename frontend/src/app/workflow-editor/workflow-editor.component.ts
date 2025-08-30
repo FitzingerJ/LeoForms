@@ -21,6 +21,9 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { ContextMenuSettingsModel, IClickEventArgs } from '@syncfusion/ej2-angular-diagrams';
+import type { ClickEventArgs as ToolbarClickArgs } from '@syncfusion/ej2-navigations';
+
 
 interface Assignment {
   name: string;
@@ -34,6 +37,8 @@ interface ReducedNode {
   assignedTo?: Assignment;
   next: string[];
 }
+
+type NodeKind = 'Schritt' | 'Verzweigung' | 'Rücksprung'; 
 
 @Component({
   selector: 'app-workflow-editor',
@@ -455,5 +460,237 @@ export class WorkflowEditorComponent implements OnInit {
     localStorage.setItem('fullWorkflow-' + this.templateId, JSON.stringify(full));
 
     this.router.navigate(['/cs', this.templateId]);
+  }
+
+  public contextMenuSettings: ContextMenuSettingsModel = {
+    show: true,
+    items: [
+      {
+        text: 'Vorher einfügen',
+        id: 'insertBefore',
+        items: [
+          { text: 'Schritt', id: 'insertBefore:Schritt' },
+          { text: 'Verzweigung', id: 'insertBefore:Verzweigung' },
+          { text: 'Rücksprung', id: 'insertBefore:Rücksprung' }
+        ]
+      },
+      {
+        text: 'Nachher einfügen',
+        id: 'insertAfter',
+        items: [
+          { text: 'Schritt', id: 'insertAfter:Schritt' },
+          { text: 'Verzweigung', id: 'insertAfter:Verzweigung' },
+          { text: 'Rücksprung', id: 'insertAfter:Rücksprung' }
+        ]
+      }
+    ]
+  };
+
+  private layoutStartX = 420;
+  private layoutStartY = 120;
+  private layoutVGap   = 110;
+
+  public onContextMenuClick(args: IClickEventArgs): void {
+    const itemId: string = (args as any)?.item?.id ?? '';
+    const elementId =
+      (args as any)?.element?.id ??
+      this.diagramComponent?.selectedItems?.nodes?.[0]?.id ??
+      this.diagramComponent?.selectedItems?.connectors?.[0]?.id;
+
+    const selected =
+      elementId ? (this.diagramComponent.getObject(elementId) as any) : null;
+
+    if (!selected || !itemId.includes(':')) return;
+
+    const [action, kindStr] = itemId.split(':');
+    const kind = kindStr as NodeKind;
+
+    if (action === 'insertBefore') {
+      this.insertNodeBefore(selected, kind);
+    } else if (action === 'insertAfter') {
+      this.insertNodeAfter(selected, kind);
+    }
+
+    // nach jedem Einfügen optional automatisch anordnen
+    this.autoLayout();
+  }
+
+  public autoLayout(): void {
+    const nodes = this.diagramComponent.nodes as NodeModel[];
+
+    // Versuch, von "Start" der Reihenfolge entlang der Kanten zu folgen
+    const order = this.computeLinearOrder();
+    const positioned = new Set<string>();
+
+    let y = this.layoutStartY;
+
+    const place = (nodeId: string) => {
+      if (positioned.has(nodeId)) return;
+      const n = this.diagramComponent.getObject(nodeId) as NodeModel;
+      if (!n) return;
+      n.offsetX = this.layoutStartX;
+      n.offsetY = y;
+      y += this.layoutVGap;
+      positioned.add(nodeId);
+    };
+
+    // 1) falls Reihenfolge gefunden, zuerst danach platzieren
+    order.forEach(id => place(id));
+
+    // 2) Rest (unverbundene oder nicht gefunden) hinten anhängen
+    nodes.forEach(n => { if (n.id && !positioned.has(n.id)) place(n.id); });
+
+    this.diagramComponent.dataBind();
+  }
+
+  private computeLinearOrder(): string[] {
+    const nodes = this.diagramComponent.nodes as NodeModel[];
+    const conns = this.diagramComponent.connectors as ConnectorModel[];
+
+    const idSet = new Set(nodes.map(n => n.id as string));
+    const incoming = new Map<string, number>();
+    const nextMap  = new Map<string, string[]>();
+
+    idSet.forEach(id => { incoming.set(id, 0); nextMap.set(id, []); });
+
+    conns.forEach(c => {
+      if (!c.sourceID || !c.targetID) return;
+      if (!idSet.has(c.sourceID) || !idSet.has(c.targetID)) return;
+      incoming.set(c.targetID, (incoming.get(c.targetID) || 0) + 1);
+      nextMap.get(c.sourceID)!.push(c.targetID);
+    });
+
+    // Start suchen (Label "Start" oder 0 incoming)
+    const start =
+      nodes.find(n => n.annotations?.[0]?.content === 'Start')?.id ||
+      [...incoming.entries()].find(([_, v]) => v === 0)?.[0];
+
+    if (!start) return nodes.map(n => n.id!).filter(Boolean);
+
+    const order: string[] = [];
+    const seen = new Set<string>();
+    let cur: string | undefined = start;
+
+    // einfache Kette ablaufen (bei Verzweigung nehmen wir den ersten Ausgang)
+    while (cur && !seen.has(cur)) {
+      order.push(cur);
+      seen.add(cur);
+      const nextMap: Map<string, string[]> = new Map();
+
+      // Then here:
+      const outs: string[] = nextMap.get(cur) ?? [];
+      if (outs.length === 0) break;
+      cur = outs[0];
+    }
+
+    return order;
+  }
+
+  private createNode(kind: NodeKind): NodeModel {
+    const common = {
+      width: 100,
+      height: kind === 'Verzweigung' ? 80 : 50,
+      annotations: [{ content: kind }],
+      ports: [
+        { id: 'top', offset: { x: 0.5, y: 0 },   visibility: 1, shape: 'Circle' },
+        { id: 'bottom', offset: { x: 0.5, y: 1 }, visibility: 1, shape: 'Circle' }
+      ]
+    } as Partial<NodeModel>;
+
+    if (kind === 'Schritt') {
+      return {
+        id: `Schritt_${Date.now()}`,
+        shape: { type: 'Flow', shape: 'Process' },
+        style: { fill: '#28A745', strokeColor: 'white' },
+        ...common
+      };
+    }
+    if (kind === 'Verzweigung') {
+      return {
+        id: `Verzweigung_${Date.now()}`,
+        shape: { type: 'Flow', shape: 'Decision' },
+        style: { fill: '#FFC107', strokeColor: 'white' },
+        ...common
+      };
+    }
+    // Rücksprung
+    return {
+      id: `Rücksprung_${Date.now()}`,
+      shape: { type: 'Basic', shape: 'Hexagon' },
+      style: { fill: '#6F42C1', strokeColor: 'white' },
+      ...common
+    };
+  }
+
+  private insertNodeBefore(target: NodeModel, kind: NodeKind): void {
+    if (!target?.id) return;
+
+    const newNode = this.createNode(kind);
+    // grobe Position in der Nähe setzen (Layout räumt später auf)
+    newNode.offsetX = (target.offsetX || this.layoutStartX);
+    newNode.offsetY = (target.offsetY || this.layoutStartY) - 60;
+
+    this.diagramComponent.add(newNode);
+
+    // 1) alle Connectors, die auf target zeigen, auf newNode umbiegen
+    (this.diagramComponent.connectors as ConnectorModel[])
+      .filter(c => c.targetID === target.id)
+      .forEach(c => { c.targetID = newNode.id!; });
+
+    // 2) newNode → target verbinden
+    const link: ConnectorModel = {
+      id: `connector_${newNode.id}_${target.id}_${Date.now()}`,
+      sourceID: newNode.id!,
+      targetID: target.id!,
+      type: 'Straight'
+    };
+    this.diagramComponent.add(link);
+
+    this.diagramComponent.dataBind();
+  }
+
+  private insertNodeAfter(target: NodeModel, kind: NodeKind): void {
+    if (!target?.id) return;
+
+    // Wenn target mehrere ausgehende Kanten hat (z.B. Verzweigung), blocken wir das einfache „Nachher einfügen“,
+    // damit deine Validierungsregeln (1 in/1 out) sauber bleiben.
+    const out = (this.diagramComponent.connectors as ConnectorModel[]).filter(c => c.sourceID === target.id);
+    if (out.length > 1) {
+      alert('Nachher einfügen ist direkt hinter einer Verzweigung mit mehreren Ausgängen nicht möglich.');
+      return;
+    }
+
+    const newNode = this.createNode(kind);
+    newNode.offsetX = (target.offsetX || this.layoutStartX);
+    newNode.offsetY = (target.offsetY || this.layoutStartY) + 60;
+    this.diagramComponent.add(newNode);
+
+    // 1) bisheriges Ziel von target (falls vorhanden) merken
+    const oldTargets = out.map(c => c.targetID!).filter(Boolean);
+
+    // 2) vorhandene Kante(n) vom target entfernen
+    out.forEach(c => this.diagramComponent.remove(c));
+
+    // 3) target → newNode legen
+    const link1: ConnectorModel = {
+      id: `connector_${target.id}_${newNode.id}_${Date.now()}`,
+      sourceID: target.id!,
+      targetID: newNode.id!,
+      type: 'Straight'
+    };
+    this.diagramComponent.add(link1);
+
+    // 4) newNode → altes Ziel wieder verbinden (falls es eines gab)
+    oldTargets.forEach(tid => {
+      const link2: ConnectorModel = {
+        id: `connector_${newNode.id}_${tid}_${Date.now()}`,
+        sourceID: newNode.id!,
+        targetID: tid,
+        type: 'Straight'
+      };
+      this.diagramComponent.add(link2);
+    });
+
+    this.diagramComponent.dataBind();
   }
 }

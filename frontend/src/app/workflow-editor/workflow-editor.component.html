@@ -27,6 +27,7 @@
         }">
         {{ isConnectionMode ? 'Verbindungsmodus aktiv – Klicken zum Verbinden' : 'Verbindung erstellen' }}
       </button>
+      <button (click)="autoLayout()">Automatisch anordnen</button>
       <button (click)="saveDiagram()">Speichern</button>
       <button (click)="loadDiagram()">Laden</button>
       <button (click)="validateDiagram()">Validieren</button>
@@ -42,6 +43,8 @@
         [nodes]="nodes"
         [connectors]="connectors"
         [tool]="tool"
+        [contextMenuSettings]="contextMenuSettings"
+        (contextMenuClick)="onContextMenuClick($event)" 
         (click)="onDiagramClick($event)">
       </ejs-diagram>
     </div>
