@@ -63,7 +63,20 @@ export class WorkflowEditorComponent implements OnInit {
 
   assignmentControl = new FormControl();
   filteredAssignments: Observable<string[]> = new Observable();
-  availableAssignments: string[] = ['Direktor', 'Sekretariat'];
+  availableAssignments: string[] = [
+    'Direktor',
+    'Sekretariat',
+    'AV Informatik/IT-Medientechnik',
+    'AV Elektronik/Medizintechnik',
+    'Werkstättenleiter',
+
+    'KV_5AHITM', 'KV_5BHITM', 'KV_5CHITM',
+    'KV_4AHITM', 'KV_4BHITM', 'KV_4CHITM',
+
+    'KV_Beispiel',
+    'Lehrer_Beispiel',
+    'Schueler_Beispiel'
+  ];
   selectedNodeForAssignment: NodeModel | null = null;
 
   constructor(private dataServ: DataService, private router: Router, private route: ActivatedRoute) {}
@@ -230,8 +243,8 @@ export class WorkflowEditorComponent implements OnInit {
   }
 
   private _filterAssignments(value: string): string[] {
-    const filterValue = value.toLowerCase();
-    return this.availableAssignments.filter(option => option.toLowerCase().includes(filterValue));
+    const v = (value || '').toLowerCase();
+    return this.availableAssignments.filter(opt => opt.toLowerCase().includes(v));
   }
 
   addAssignment(value: string) {
@@ -262,13 +275,17 @@ export class WorkflowEditorComponent implements OnInit {
   updateAssignmentInNode() {
     if (!this.selectedNodeForAssignment) return;
 
-    const isEmail = (v: string) => v.includes('@');
-    const assignments: Assignment[] = this.assignmentList.map(name => ({
-      name,
-      ...(isEmail(name) ? { email: name } : {})
-    }));
+    const assignments: Assignment[] = this.assignmentList.map(name => {
+      const mapped = this.dataServ.getEmailForRole?.(name);
+      const isEmail = name.includes('@');
+      return {
+        name,
+        email: isEmail ? name : (mapped || undefined)
+      };
+    });
 
     (this.selectedNodeForAssignment as any).assignedTo = assignments;
+
     const baseLabel = this.selectedNodeForAssignment.annotations?.[0]?.content?.split('\n')[0] || '';
     this.selectedNodeForAssignment.annotations![0].content = `${baseLabel}\n(${this.assignmentList.join(', ')})`;
   }
@@ -281,18 +298,18 @@ export class WorkflowEditorComponent implements OnInit {
   private setAssignment(value: string): void {
     if (!this.selectedNodeForAssignment) return;
 
+    const mapped = this.dataServ.getEmailForRole?.(value);
     const isEmail = value.includes('@');
+
     const assignment: Assignment = {
       name: value,
-      ...(isEmail ? { email: value } : {})
+      email: isEmail ? value : (mapped || undefined)
     };
 
     (this.selectedNodeForAssignment as any).assignedTo = assignment;
 
-    if (this.selectedNodeForAssignment.annotations?.length) {
-      const baseLabel = this.selectedNodeForAssignment.annotations[0].content?.split('\n')[0] || '';
-      this.selectedNodeForAssignment.annotations[0].content = `${baseLabel}\n(${assignment.name})`;
-    }
+    const baseLabel = this.selectedNodeForAssignment.annotations?.[0]?.content?.split('\n')[0] || '';
+    this.selectedNodeForAssignment.annotations![0].content = `${baseLabel}\n(${assignment.name})`;
   }
 
   public saveDiagram(): void {

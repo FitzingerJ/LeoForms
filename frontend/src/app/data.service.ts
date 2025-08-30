@@ -137,12 +137,30 @@ export class DataService {
 
   private readonly roleEmailMap: { [role: string]: string } = {
     'Direktor': 'direktor@htl-leonding.ac.at',
-    'Sekretariat': 'sekretariat@htl-leonding.ac.at'
-    // Weitere Rollen kannst du hier hinzufügen
+    'Sekretariat': 'sekretariat@htl-leonding.ac.at',
+
+    // Schulleitung (Beispiele/Platzhalter-Mails)
+    'AV Informatik/IT-Medientechnik': 'av.it@htl-leonding.ac.at',
+    'AV Elektronik/Medizintechnik': 'av.el@htl-leonding.ac.at',
+    'Werkstättenleiter': 'werkstaettenleiter@htl-leonding.ac.at',
+
+    // KV-Beispiele
+    'KV_Beispiel': 'kv.beispiel@htl-leonding.ac.at',
+    // (Falls du echte Klassen-KVs später brauchst, hier ergänzen:)
+    'KV_5AHITM': 'kv.5ahitm@htl-leonding.ac.at',
+    'KV_5BHITM': 'kv.5bhitm@htl-leonding.ac.at',
+    'KV_5CHITM': 'kv.5chitm@htl-leonding.ac.at',
+    'KV_4AHITM': 'kv.4ahitm@htl-leonding.ac.at',
+    'KV_4BHITM': 'kv.4bhitm@htl-leonding.ac.at',
+    'KV_4CHITM': 'kv.4chitm@htl-leonding.ac.at',
+
+    // Weitere Beispielrollen
+    'Lehrer_Beispiel': 'lehrer.beispiel@htl-leonding.ac.at',
+    'Schueler_Beispiel': 'schueler.beispiel@htl-leonding.ac.at'
   };
 
-  getEmailForRole(roleName: string): string | undefined {
-    return this.roleEmailMap[roleName];
+  public getEmailForRole(name?: string): string | undefined {
+    return name ? this.roleEmailMap[name] : undefined;
   }
 
 }
