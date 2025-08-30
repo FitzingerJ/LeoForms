@@ -1,10 +1,11 @@
+// src/app/menu/menu.component.ts
 import { Component, OnInit } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
-//import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { MockOidcSecurityService as OidcSecurityService } from '../auth/mock-oidc.service';
 import { UserData } from '../data.service';
+import type { UserKey } from '../auth/mock-oidc.service';
 
 @Component({
   selector: 'app-menu',
@@ -14,52 +15,36 @@ import { UserData } from '../data.service';
 export class MenuComponent implements OnInit {
 
   userData: UserData | null = null;
+  knownUsers: { key: UserKey; label: string }[] = [];
+
   isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
-    .pipe(
-      map(result => result.matches),
-      shareReplay()
-    );
-  
-  
+    .pipe(map(r => r.matches), shareReplay());
+
   constructor(private breakpointObserver: BreakpointObserver,
-              public oidcSecurityService: OidcSecurityService) {
-  }
-  
+              public oidcSecurityService: OidcSecurityService) {}
 
-  public logout(): void {
-    this.oidcSecurityService
-      .logoff()
-      .subscribe((result) => console.log(result));
-    this.userData = null;
-  }
-
-  public ngOnInit(): void {
-    this.oidcSecurityService
-      .checkAuth()
-      .subscribe(({ isAuthenticated, userData, accessToken, idToken }) => {
-        console.log(userData);
-        this.userData = userData;
-      });
-
-    this.oidcSecurityService.isAuthenticated().subscribe((isAuthenticated) => {
-      console.log('isAuthenticated:', isAuthenticated);
+  ngOnInit(): void {
+    this.oidcSecurityService.checkAuth().subscribe(({ userData }) => {
+      this.userData = userData;
     });
+
+    this.oidcSecurityService.userData$.subscribe(u => this.userData = u);
+    this.knownUsers = this.oidcSecurityService.getKnownUsers();
   }
 
-  public login() {
-    this.oidcSecurityService
-      .authorizeWithPopUp()
-      .subscribe(({ isAuthenticated, userData, accessToken, errorMessage }) => {
-        console.log(userData);
-        this.userData = userData;
-      });
+  logout(): void {
+    this.oidcSecurityService.logoff().subscribe(() => this.userData = null);
   }
 
-  public switchUser(userKey: 'Jakob' | 'Direktor' | 'Sekretariat'): void {
+  login(): void {
+    this.oidcSecurityService.authorizeWithPopUp().subscribe(({ userData }) => this.userData = userData);
+  }
+
+  switchUser(userKey: UserKey): void {
     this.oidcSecurityService.switchUser(userKey);
+    // checkAuth sorgt dafür, dass Komponenten, die auf userData$ hören, updaten
     this.oidcSecurityService.checkAuth().subscribe(({ userData }) => {
       this.userData = userData;
     });
   }
-
 }

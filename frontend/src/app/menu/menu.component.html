@@ -31,9 +31,15 @@
       </button>
       <mat-menu #menu="matMenu">
         <button mat-menu-item (click)="logout()">Abmelden</button>
-        <button mat-button (click)="switchUser('Jakob')">Jakob</button>
-        <button mat-button (click)="switchUser('Direktor')">Direktor</button>
-        <button mat-button (click)="switchUser('Sekretariat')">Sekretariat</button>
+        <mat-divider></mat-divider>
+        <span class="px-3 py-1" style="opacity:.7;">Benutzer wechseln</span>
+        <button
+          mat-menu-item
+          *ngFor="let u of knownUsers"
+          (click)="switchUser(u.key)"
+        >
+          {{ u.label }}
+        </button>
       </mat-menu>
     </mat-toolbar>
     <router-outlet></router-outlet>
