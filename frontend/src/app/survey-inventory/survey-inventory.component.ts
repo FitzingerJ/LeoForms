@@ -4,6 +4,7 @@ import { Title } from '@angular/platform-browser';
 import { SurveyModel } from '../model/survey.model';
 import { Router } from "@angular/router";
 import { MockOidcSecurityService as OidcSecurityService } from '../auth/mock-oidc.service';
+import { NotificationService } from '../notification.service';
 
 @Component({
   selector: 'app-survey-inventory',
@@ -21,6 +22,7 @@ export class SurveyInventoryComponent implements OnInit {
     public dataServ: DataService,
     private titleService: Title,
     private route: Router,
+    private notificationService: NotificationService,
     public oidcSecurityService: OidcSecurityService
   ) {
     this.titleService.setTitle('SURVEY INVENTORY');

@@ -1,5 +1,10 @@
 <h2>Formular: {{surveyName}}</h2>
 
+
+<div class="meta">
+  <div>Ersteller: {{ creatorEmail }}</div>
+  <div *ngIf="confirmedSummary">{{ confirmedSummary }}</div>
+</div>
 <p *ngIf="workflow.length > 0">
   <strong>Fortschritt:</strong>
   <ng-container *ngIf="isRejected(); else regularStep">

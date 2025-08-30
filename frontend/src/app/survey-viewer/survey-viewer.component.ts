@@ -33,6 +33,8 @@ export class SurveyViewerComponent implements OnInit {
   branchUserIndex = 0;
   currentStep: any;
   canEditAfterRejection = false;
+  creatorEmail = '';
+  confirmedSummary = '';
 
   constructor(private route: ActivatedRoute,
               public oidc: OidcSecurityService,
@@ -52,11 +54,15 @@ export class SurveyViewerComponent implements OnInit {
       const unsorted = JSON.parse(raw);
       this.workflow = this.sortWorkflow(unsorted);
 
+      this.creatorEmail = localStorage.getItem('creator-' + this.surveyId) || '';
+
       const savedIndex = Number(localStorage.getItem('step-' + this.surveyId) || '0');
       const startIndex = this.getFirstRealStepIndex();
       this.stepIndex = this.isSystemStep(this.workflow[savedIndex]) ? startIndex : savedIndex;
       this.currentStep = this.workflow[this.stepIndex];
       localStorage.setItem('step-' + this.surveyId, this.stepIndex.toString());
+
+      this.confirmedSummary = this.buildConfirmedSummary();
 
       const wasRejected = localStorage.getItem('rejected-' + this.surveyId) === 'true';
 
@@ -97,6 +103,52 @@ export class SurveyViewerComponent implements OnInit {
 
     const index = parseInt(raw || '0', 10);
     return this.workflow[index]?.label === 'Ende';
+  }
+
+  private buildConfirmedSummary(): string {
+    const stepRaw = localStorage.getItem('step-' + this.surveyId);
+    const branchKey = `branchStatus-${this.surveyId}`;
+    const statusJson = localStorage.getItem(branchKey);
+    const branchStatus = statusJson ? JSON.parse(statusJson) : {};
+
+    // current "real" step ermitteln
+    let idx = Number(stepRaw || '0');
+    let current = this.workflow[idx];
+    if (!current || this.isSystemStep(current) || this.isRuecksprungStep(current)) {
+      const firstVisible = this.workflow.find(s => !this.isSystemStep(s) && !this.isRuecksprungStep(s));
+      if (!firstVisible) return '';
+      idx = this.workflow.findIndex(s => s.id === firstVisible.id);
+      current = firstVisible;
+    }
+
+    const visible = this.workflow.filter(s => !this.isSystemStep(s) && !this.isRuecksprungStep(s));
+    const lines: string[] = [];
+
+    for (const step of visible) {
+      const stepPos = this.workflow.findIndex(s => s.id === step.id);
+      const isPast = stepPos < this.workflow.findIndex(s => s.id === current.id);
+      const isCurrent = step.id === current.id;
+
+      if (Array.isArray(step.assignedTo)) {
+        const assigned = step.assignedTo.map((a: any) => a.email || this.dataService.getEmailForRole(a.name));
+        const done = (branchStatus?.[step.id]?.done || []) as string[];
+        if (isPast || isCurrent) {
+          const doneNames = step.assignedTo
+            .filter((a: any) => done.includes(a.email || this.dataService.getEmailForRole(a.name)))
+            .map((a: any) => a.name || a.email);
+          lines.push(`${step.label}: ${done.length}/${assigned.length} bestätigt${doneNames.length ? ' (' + doneNames.join(', ') + ')' : ''}`);
+        }
+      } else {
+        const assignedEmail = step?.assignedTo?.email
+          || (step?.assignedTo?.name ? this.dataService.getEmailForRole(step.assignedTo.name) : undefined);
+        if (isPast && assignedEmail) {
+          const who = step.assignedTo.name || assignedEmail;
+          lines.push(`${step.label}: ${who} bestätigt`);
+        }
+      }
+    }
+
+    return lines.join(' | ');
   }
 
   confirm(): void {
